@@ -1,685 +1,593 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Darrison & Sach Co.</title>
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <style>
-    html,body,#root{height:100%;margin:0;padding:0;background:#080808}
-    input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.7)}
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Darrison & Sach Co.</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body,#root{height:100%;background:#080808;overflow:hidden}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:#111}
+::-webkit-scrollbar-thumb{background:#C9A84C;border-radius:2px}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.6)}
+</style>
 </head>
-<body>
-  <div id="root"></div>
-  <script type="text/babel">
+<body><div id="root"></div>
+<script type="text/babel">
+const {useState,useMemo,useCallback}=React;
 
-
-// ─── GLOBAL STYLES ──────────────────────────────────────────────────────────
-const G = () => (
-  <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap');
-    *{box-sizing:border-box;margin:0;padding:0}
-    :root{
-      --g:#C9A84C;--g2:#E8C96A;--gp:#F5EAC8;
-      --bk:#080808;--dk:#111;--c1:#171717;--c2:#1E1E1E;
-      --br:#2C2C2C;--tx:#F0EAD6;--mu:#777;
-      --gr:#2ECC71;--rd:#E74C3C;
-    }
-    body{background:var(--bk);color:var(--tx);font-family:'Montserrat',sans-serif;overflow-x:hidden}
-    ::-webkit-scrollbar{width:3px;height:3px}
-    ::-webkit-scrollbar-track{background:var(--dk)}
-    ::-webkit-scrollbar-thumb{background:var(--g);border-radius:2px}
-    .serif{font-family:'Cormorant Garamond',serif}
-    .gold{color:var(--g)}
-    .muted{color:var(--mu)}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes slideDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,0.4)}50%{box-shadow:0 0 0 8px rgba(201,168,76,0)}}
-    .fade-up{animation:fadeUp 0.35s ease forwards}
-    .card-hover{transition:all 0.25s}
-    .card-hover:hover{transform:translateY(-2px);border-color:var(--g)!important}
-    .btn-g{background:linear-gradient(135deg,var(--g),var(--g2));color:#000;border:none;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:600;letter-spacing:.06em;transition:opacity .2s,transform .2s}
-    .btn-g:hover{opacity:.88;transform:translateY(-1px)}
-    .btn-o{background:transparent;color:var(--g);border:1px solid var(--g);cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:500;transition:all .2s}
-    .btn-o:hover{background:var(--g);color:#000}
-    .btn-ghost{background:transparent;color:var(--mu);border:1px solid var(--br);cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:400;font-size:12px;transition:all .2s}
-    .btn-ghost:hover{color:var(--tx);border-color:var(--mu)}
-    .svc-row{transition:all .2s;cursor:pointer}
-    .svc-row:hover{background:rgba(201,168,76,.06)!important}
-    .svc-row.sel{background:rgba(201,168,76,.1)!important;border-left:2px solid var(--g)!important}
-    .pin{cursor:pointer;transition:transform .2s}
-    .pin:hover{transform:scale(1.4)}
-    .pin.active{transform:scale(1.5)}
-    img{display:block;object-fit:cover;width:100%;height:100%}
-    input,select{font-family:'Montserrat',sans-serif}
-    .tag{background:var(--c2);border:1px solid var(--br);color:var(--mu);border-radius:20px;padding:3px 10px;font-size:11px;cursor:pointer;transition:all .2s;white-space:nowrap}
-    .tag:hover,.tag.on{background:rgba(201,168,76,.1);border-color:var(--g);color:var(--g)}
-    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(6px);z-index:999;display:flex;align-items:center;justify-content:center;padding:16px}
-  `}</style>
-);
-
-// ─── DATA ────────────────────────────────────────────────────────────────────
-const AREAS = ['Thane West','Mulund','Andheri West','Bandra','Dadar','Kurla','Borivali','Malad','Goregaon','Kandivali','Vasai','Mira Road','Dombivli','Kalyan','Vikhroli'];
-const SPECS = ['Skin Fades','Beard Design','Classic Cuts','Hair Colour','Taper Fades','Traditional Shave','Pompadours','Kids Cuts'];
-
-const SHOP_DATA = [
-  ['Usman Cuts','USM'],['Royal Fade Studio','RFS'],['The Fade Factory','TFF'],['Bhai Bhai Salon','BBS'],
-  ['Star Barber Co.','SBC'],['Classic Cuts','CCT'],['The Barber House','TBH'],['Style Zone','SZN'],
-  ["Gentlemen's Den","GDN"],['New Look Salon','NLS'],['Pro Cuts Studio','PCS'],['The Trim Room','TTR'],
-  ['Blade & Brush','B&B'],['Sharp & Clean','S&C'],['The Grooming Co.','TGC'],["Khan's Cuts",'KCT'],
-  ['Sharma Salon','SSN'],["Rao's Barber",'RBR'],['Patel Cuts','PCT'],['Singh Style','SST'],
-  ['The Heritage Barber','THB'],['Fade Kings','FKG'],['Mirror & Blade','M&B'],['The Craft Room','TCR'],
-  ['Zenith Cuts','ZCT'],['Old Spice Barber','OSB'],['The Scissor Guild','TSG'],['Prime Style','PST'],
-  ['Black Sheep Barber','BSB'],['The Detail Shop','TDS'],['Artisan Cuts','ACT'],['The Fifth Cut','TFC'],
-  ['Urban Blades','UBL'],['The Fade Atelier','TFA'],['Crown Barber','CBR'],['The Parlour','TPR'],
-  ['Midnight Barber','MBR'],['The Craft Barber','TCB'],['Gold Scissors','GSC'],['The Anchor','TAC'],
-  ['Metro Cuts','MCT'],['The Blade Room','TBR'],['Signature Style','SIG'],['The Cut Lab','TCL'],
-  ['District Barber','DBR'],['The Fade Den','TFD'],['Prestige Cuts','PRC'],['The Groom Room','TGR'],
-  ['Velocity Barber','VBR'],['The Crown Cut','TCC'],
-];
-
-const HAIRCUTS = [
-  {id:'buzz',name:'Buzz Cut',desc:'Military-clean all-over cut',price:150,time:'20 min',
-   img:'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&q=80&fit=crop&crop=face'},
-  {id:'skinfade',name:'Skin Fade',desc:'Zero-to-length blend up the sides',price:350,time:'35 min',
-   img:'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&q=80&fit=crop'},
-  {id:'taper',name:'Taper Fade',desc:'Gradual length taper around the edges',price:300,time:'30 min',
-   img:'https://images.unsplash.com/photo-1599351614938-8c1b6bc41f4a?w=600&q=80&fit=crop'},
-  {id:'pompadour',name:'Pompadour',desc:'Volume on top with tight clean sides',price:420,time:'40 min',
-   img:'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&q=80&fit=crop&crop=face'},
-  {id:'undercut',name:'Undercut',desc:'Shaved sides with length kept on top',price:350,time:'35 min',
-   img:'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=600&q=80&fit=crop&crop=face'},
-  {id:'caesar',name:'Caesar Cut',desc:'Short horizontally-cut fringe',price:200,time:'25 min',
-   img:'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600&q=80&fit=crop'},
-  {id:'quiff',name:'Quiff',desc:'Swept-up front with faded sides',price:380,time:'35 min',
-   img:'https://images.unsplash.com/photo-1519869325930-281384150729?w=600&q=80&fit=crop&crop=face'},
-  {id:'textured',name:'Textured Crop',desc:'Modern choppy texture with high fade',price:320,time:'30 min',
-   img:'https://images.unsplash.com/photo-1534297635766-a262cdcb8ee4?w=600&q=80&fit=crop&crop=face'},
-  {id:'slickback',name:'Slick Back',desc:'Combed-back style with side fade',price:340,time:'30 min',
-   img:'https://images.unsplash.com/photo-1620327467532-6ebaca239d66?w=600&q=80&fit=crop&crop=face'},
-  {id:'afrofade',name:'Afro Fade',desc:'Natural volume on top with tight fade',price:400,time:'40 min',
-   img:'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=600&q=80&fit=crop'},
-];
-
-const SHAVES = [
-  {id:'clean',name:'Clean Shave',desc:'Full face razor with hot towel ritual',price:150,time:'20 min',
-   img:'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=600&q=80&fit=crop'},
-  {id:'beardtrim',name:'Beard Trim',desc:'Precision beard shaping and lines',price:200,time:'25 min',
-   img:'https://images.unsplash.com/photo-1621605810871-ef4d70c48e34?w=600&q=80&fit=crop'},
-  {id:'bearddesign',name:'Beard Design',desc:'Custom beard sculpting and styling',price:320,time:'35 min',
-   img:'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=600&q=80&fit=crop'},
-  {id:'hottowel',name:'Royal Hot Towel',desc:'Traditional straight-razor experience',price:380,time:'45 min',
-   img:'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&q=80&fit=crop'},
-  {id:'mustache',name:'Moustache Trim',desc:'Precision moustache shaping',price:100,time:'15 min',
-   img:'https://images.unsplash.com/photo-1534297635766-a262cdcb8ee4?w=600&q=80&fit=crop'},
-  {id:'facial',name:'Grooming Facial',desc:'Cleanse, steam & moisturise for men',price:450,time:'50 min',
-   img:'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&q=80&fit=crop'},
-];
-
-// Seeded pseudo-random for deterministic data
-const sr = (seed) => { let x = Math.sin(seed+1)*10000; return x-Math.floor(x); };
-
-const BARBERS = SHOP_DATA.map(([name, initials], i) => {
-  const rating = (3.6 + sr(i*7)*1.3).toFixed(1);
-  const reviews = Math.floor(sr(i*13)*480 + 40);
-  const specs = [SPECS[i%8], SPECS[(i+3)%8], SPECS[(i+5)%8]];
-  const homeService = sr(i*19) > 0.35;
-  const mapX = 5 + sr(i*3)*88;
-  const mapY = 8 + sr(i*5)*82;
-  const priceFrom = [150,200,250,300][Math.floor(sr(i*11)*4)];
-  const portfolio = Array.from({length:6},(_,j)=>`https://picsum.photos/seed/${i*7+j+200}/400/400`);
-  const cuts = HAIRCUTS.slice(0,5+Math.floor(sr(i*17)*5)).map(h=>({...h,price:h.price+Math.floor(sr(i+h.price)*100)}));
-  const shv = SHAVES.slice(0,3+Math.floor(sr(i*23)*3)).map(s=>({...s,price:s.price+Math.floor(sr(i+s.price)*50)}));
-  return {id:i+1,name,initials,rating:parseFloat(rating),reviews,specs,homeService,mapX,mapY,priceFrom,portfolio,cuts,shv,area:AREAS[i%AREAS.length],wait:`${5+Math.floor(sr(i)*20)} min`,verified:sr(i*29)>0.3};
-});
-
-const TIMES = ['9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','2:00 PM','2:30 PM','3:00 PM','3:30 PM','4:00 PM','4:30 PM','5:00 PM','5:30 PM','6:00 PM','6:30 PM'];
-
-// ─── ATOMS ───────────────────────────────────────────────────────────────────
-const Stars = ({rating,size=12}) => {
-  const full = Math.floor(rating); const half = rating%1>=0.5; const empty = 5-full-(half?1:0);
-  return <span style={{fontSize:size,color:'var(--g)',letterSpacing:-1}}>
-    {'★'.repeat(full)}{half?'½':''}<span style={{color:'var(--br)'}}>{'★'.repeat(empty)}</span>
-  </span>;
+const CITIES={
+  mumbai:{name:'Mumbai',state:'Maharashtra',
+    hoods:['Bandra','Lower Parel','Juhu','Andheri','Colaba','Dadar','Worli','Khar'],
+    shops:[
+      {n:'Bombay Barber Co.',area:'Bandra West',r:4.8,rv:312,p:350,sp:['Skin Fade','Pompadour','Beard Design'],hs:true,w:'10 min',v:true,x:28,y:42},
+      {n:'The Barber Bar',area:'Lower Parel',r:4.7,rv:289,p:400,sp:['Classic Cuts','Hot Towel Shave','Undercut'],hs:false,w:'5 min',v:true,x:38,y:60},
+      {n:"Lobo's Salon",area:'Bandra',r:4.6,rv:445,p:300,sp:['Taper Fade','Hair Colour','Beard Trim'],hs:true,w:'15 min',v:true,x:22,y:38},
+      {n:'The Hairy Tale',area:'Juhu',r:4.5,rv:198,p:450,sp:['Pompadour','Skin Fade','Quiff'],hs:true,w:'20 min',v:true,x:15,y:25},
+      {n:'Gents Studio',area:'Andheri West',r:4.4,rv:267,p:250,sp:['Buzz Cut','Beard Design','Caesar'],hs:false,w:'8 min',v:false,x:18,y:20},
+      {n:'Style & Scissors',area:'Dadar',r:4.3,rv:189,p:200,sp:['Classic Cuts','Clean Shave','Caesar'],hs:false,w:'12 min',v:false,x:42,y:65},
+      {n:'The Cut Above',area:'Worli',r:4.7,rv:156,p:500,sp:['Undercut','Beard Design','Skin Fade'],hs:true,w:'5 min',v:true,x:45,y:72},
+      {n:'Trim & Proper',area:'Colaba',r:4.5,rv:234,p:350,sp:['Taper Fade','Hot Towel','Pompadour'],hs:false,w:'18 min',v:true,x:50,y:84},
+      {n:'The Fade Room',area:'Khar',r:4.6,rv:178,p:380,sp:['Skin Fade','Textured Crop','Beard Trim'],hs:true,w:'10 min',v:true,x:24,y:45},
+      {n:'Classic Barber House',area:'Borivali',r:4.2,rv:321,p:180,sp:['Buzz Cut','Classic Cuts','Clean Shave'],hs:false,w:'25 min',v:false,x:12,y:12},
+      {n:'The Scissor Guild',area:'Bandra East',r:4.4,rv:143,p:320,sp:['Quiff','Slick Back','Beard Design'],hs:true,w:'15 min',v:false,x:30,y:40},
+      {n:'Bombay Shave Club',area:'Lower Parel',r:4.8,rv:267,p:420,sp:['Hot Towel Shave','Royal Shave','Beard Sculpt'],hs:false,w:'5 min',v:true,x:40,y:62},
+    ]
+  },
+  delhi:{name:'Delhi',state:'NCR',
+    hoods:['Connaught Place','Hauz Khas','Khan Market','Lajpat Nagar','Vasant Kunj','Saket','South Ex','Karol Bagh'],
+    shops:[
+      {n:"Lloyd's Barber Shop",area:'Connaught Place',r:4.9,rv:892,p:250,sp:['Classic Cuts','Hot Towel Shave','Traditional Trim'],hs:false,w:'20 min',v:true,x:45,y:42,note:'Est. 1942'},
+      {n:'The Hairy Tale',area:'Vasant Kunj',r:4.7,rv:312,p:500,sp:['Skin Fade','Pompadour','Beard Design'],hs:true,w:'10 min',v:true,x:30,y:68},
+      {n:'Bombay Barber',area:'Hauz Khas Village',r:4.6,rv:445,p:600,sp:['Taper Fade','Undercut','Quiff'],hs:true,w:'15 min',v:true,x:38,y:62},
+      {n:'Old Monk Barbershop',area:'Lajpat Nagar',r:4.5,rv:234,p:350,sp:['Skin Fade','Beard Sculpt','Caesar'],hs:false,w:'12 min',v:true,x:56,y:58},
+      {n:'The Grooming Room',area:'Khan Market',r:4.8,rv:178,p:700,sp:['Classic Cuts','Hot Towel','Pompadour'],hs:false,w:'5 min',v:true,x:50,y:44},
+      {n:'Trim & Style',area:'South Extension',r:4.4,rv:267,p:400,sp:['Taper Fade','Beard Design','Textured Crop'],hs:true,w:'20 min',v:false,x:48,y:65},
+      {n:'The Fade Studio',area:'Saket',r:4.5,rv:189,p:450,sp:['Skin Fade','Slick Back','Beard Trim'],hs:true,w:'10 min',v:true,x:40,y:74},
+      {n:'Urban Cuts',area:'Rajouri Garden',r:4.3,rv:321,p:300,sp:['Buzz Cut','Classic Cuts','Clean Shave'],hs:false,w:'15 min',v:false,x:20,y:44},
+      {n:'The Heritage Barber',area:'Connaught Place',r:4.7,rv:567,p:350,sp:['Classic Taper','Hot Towel','Royal Shave'],hs:false,w:'30 min',v:true,x:46,y:40},
+      {n:'The Dapper Den',area:'Hauz Khas',r:4.6,rv:198,p:550,sp:['Pompadour','Quiff','Skin Fade'],hs:true,w:'8 min',v:true,x:36,y:60},
+      {n:'Kings Barber House',area:'Karol Bagh',r:4.4,rv:412,p:200,sp:['Traditional Shave','Classic Cuts','Beard Trim'],hs:false,w:'10 min',v:false,x:28,y:36},
+      {n:'Style Hub Barbers',area:'Janakpuri',r:4.2,rv:234,p:250,sp:['Taper Fade','Buzz Cut','Clean Shave'],hs:false,w:'20 min',v:false,x:14,y:50},
+    ]
+  },
+  bangalore:{name:'Bengaluru',state:'Karnataka',
+    hoods:['Indiranagar','Koramangala','HSR Layout','Whitefield','MG Road','JP Nagar','Malleshwaram','Jayanagar'],
+    shops:[
+      {n:'Blade & Brush',area:'Indiranagar',r:4.8,rv:445,p:500,sp:['Skin Fade','Beard Design','Pompadour'],hs:true,w:'10 min',v:true,x:62,y:36},
+      {n:'The Barber Room',area:'Koramangala',r:4.7,rv:389,p:450,sp:['Taper Fade','Undercut','Textured Crop'],hs:true,w:'15 min',v:true,x:55,y:54},
+      {n:'Trim & Proper',area:'HSR Layout',r:4.6,rv:234,p:400,sp:['Classic Cuts','Hot Towel','Beard Trim'],hs:false,w:'12 min',v:true,x:58,y:68},
+      {n:'Urban Barber Studio',area:'Whitefield',r:4.4,rv:312,p:350,sp:['Skin Fade','Slick Back','Beard Design'],hs:true,w:'20 min',v:false,x:84,y:36},
+      {n:'The Fade Room',area:'JP Nagar',r:4.5,rv:178,p:380,sp:['Skin Fade','Taper Fade','Quiff'],hs:true,w:'8 min',v:true,x:44,y:74},
+      {n:'Style Cuts MG Road',area:'MG Road',r:4.7,rv:567,p:600,sp:['Classic Cuts','Hot Towel Shave','Pompadour'],hs:false,w:'5 min',v:true,x:48,y:40},
+      {n:'The Scissor Guild',area:'Jayanagar',r:4.3,rv:189,p:300,sp:['Buzz Cut','Classic Taper','Beard Trim'],hs:false,w:'25 min',v:false,x:40,y:80},
+      {n:'Classic Barbershop',area:'Malleshwaram',r:4.5,rv:445,p:250,sp:['Traditional Shave','Classic Cuts','Hot Towel'],hs:false,w:'15 min',v:true,x:30,y:20},
+      {n:'The Craft Barber',area:'Indiranagar',r:4.8,rv:267,p:550,sp:['Skin Fade','Beard Sculpt','Pompadour'],hs:true,w:'10 min',v:true,x:65,y:32},
+      {n:'Prestige Cuts',area:'Koramangala',r:4.6,rv:198,p:420,sp:['Taper Fade','Undercut','Textured Crop'],hs:true,w:'12 min',v:true,x:52,y:58},
+      {n:'The Heritage Cut',area:'Basavanagudi',r:4.4,rv:321,p:200,sp:['Classic Cuts','Clean Shave','Traditional Trim'],hs:false,w:'20 min',v:false,x:36,y:76},
+      {n:'The Grooming Lounge',area:'Sadashivanagar',r:4.7,rv:143,p:650,sp:['Skin Fade','Pompadour','Beard Design'],hs:true,w:'5 min',v:true,x:26,y:16},
+    ]
+  },
+  hyderabad:{name:'Hyderabad',state:'Telangana',
+    hoods:['Banjara Hills','Jubilee Hills','Kondapur','Hitech City','Gachibowli','Ameerpet','Begumpet','Madhapur'],
+    shops:[
+      {n:'The Hairy Tale',area:'Banjara Hills',r:4.7,rv:389,p:500,sp:['Skin Fade','Pompadour','Beard Design'],hs:true,w:'10 min',v:true,x:34,y:34},
+      {n:'Fade Masters',area:'Jubilee Hills',r:4.6,rv:267,p:450,sp:['Skin Fade','Taper Fade','Quiff'],hs:true,w:'15 min',v:true,x:26,y:42},
+      {n:'The Barber Shop',area:'Kondapur',r:4.5,rv:198,p:380,sp:['Classic Cuts','Beard Trim','Undercut'],hs:false,w:'20 min',v:true,x:56,y:28},
+      {n:'Style N Scissors',area:'Hitech City',r:4.4,rv:312,p:350,sp:['Taper Fade','Textured Crop','Beard Design'],hs:true,w:'12 min',v:false,x:62,y:36},
+      {n:'Urban Cuts Studio',area:'Madhapur',r:4.6,rv:178,p:400,sp:['Skin Fade','Slick Back','Beard Sculpt'],hs:true,w:'8 min',v:true,x:66,y:44},
+      {n:'The Trim Room',area:'Gachibowli',r:4.5,rv:234,p:420,sp:['Pompadour','Classic Cuts','Hot Towel'],hs:false,w:'15 min',v:true,x:58,y:62},
+      {n:'Classic Cuts',area:'Kukatpally',r:4.2,rv:445,p:200,sp:['Buzz Cut','Classic Taper','Clean Shave'],hs:false,w:'25 min',v:false,x:36,y:16},
+      {n:'Blade & Brush',area:'Begumpet',r:4.7,rv:156,p:550,sp:['Skin Fade','Beard Design','Royal Shave'],hs:true,w:'5 min',v:true,x:44,y:56},
+      {n:'The Grooming Co',area:'Ameerpet',r:4.3,rv:289,p:300,sp:['Taper Fade','Beard Trim','Caesar'],hs:false,w:'18 min',v:false,x:46,y:62},
+      {n:'Crown Barbers',area:'Banjara Hills',r:4.8,rv:143,p:600,sp:['Pompadour','Skin Fade','Undercut'],hs:true,w:'10 min',v:true,x:28,y:28},
+      {n:'The Fade Den',area:'Kondapur',r:4.4,rv:198,p:380,sp:['Skin Fade','Taper Fade','Textured Crop'],hs:true,w:'15 min',v:false,x:60,y:22},
+      {n:"Gentlemen's Barber",area:'Secunderabad',r:4.5,rv:321,p:250,sp:['Classic Cuts','Hot Towel','Beard Trim'],hs:false,w:'20 min',v:true,x:56,y:78},
+    ]
+  },
+  chennai:{name:'Chennai',state:'Tamil Nadu',
+    hoods:['T Nagar','Nungambakkam','Anna Nagar','Adyar','Velachery','Mylapore','Kilpauk','Porur'],
+    shops:[
+      {n:"Hari's Hair Design",area:'T Nagar',r:4.7,rv:678,p:300,sp:['Classic Cuts','Taper Fade','Beard Trim'],hs:false,w:'20 min',v:true,x:40,y:48},
+      {n:'The Barber Shop',area:'Nungambakkam',r:4.6,rv:312,p:450,sp:['Skin Fade','Pompadour','Undercut'],hs:true,w:'15 min',v:true,x:46,y:36},
+      {n:'Style N Scissors',area:'Anna Nagar',r:4.5,rv:234,p:350,sp:['Taper Fade','Beard Design','Textured Crop'],hs:true,w:'10 min',v:false,x:28,y:20},
+      {n:'The Trim Room',area:'Adyar',r:4.4,rv:189,p:300,sp:['Classic Cuts','Clean Shave','Buzz Cut'],hs:false,w:'25 min',v:true,x:44,y:74},
+      {n:'Urban Cuts',area:'Velachery',r:4.5,rv:267,p:400,sp:['Skin Fade','Slick Back','Beard Sculpt'],hs:true,w:'12 min',v:true,x:56,y:80},
+      {n:'Blade & Brush',area:'Mylapore',r:4.7,rv:445,p:500,sp:['Hot Towel Shave','Classic Cuts','Pompadour'],hs:false,w:'8 min',v:true,x:48,y:68},
+      {n:'Classic Cuts',area:'Tambaram',r:4.2,rv:321,p:180,sp:['Buzz Cut','Classic Taper','Clean Shave'],hs:false,w:'30 min',v:false,x:54,y:90},
+      {n:'The Grooming Studio',area:'Porur',r:4.4,rv:143,p:380,sp:['Taper Fade','Beard Design','Quiff'],hs:true,w:'15 min',v:false,x:16,y:58},
+      {n:'Royal Barbers',area:'Kilpauk',r:4.6,rv:234,p:320,sp:['Classic Cuts','Hot Towel','Beard Design'],hs:false,w:'10 min',v:true,x:38,y:28},
+      {n:'The Heritage Salon',area:'T Nagar',r:4.8,rv:567,p:400,sp:['Traditional Shave','Classic Cuts','Pompadour'],hs:false,w:'15 min',v:true,x:42,y:52},
+      {n:'Cut & Style',area:'Vadapalani',r:4.3,rv:198,p:280,sp:['Skin Fade','Textured Crop','Beard Trim'],hs:true,w:'20 min',v:false,x:34,y:58},
+      {n:'The Fade Room',area:'Perambur',r:4.5,rv:156,p:350,sp:['Skin Fade','Taper Fade','Undercut'],hs:false,w:'18 min',v:true,x:44,y:16},
+    ]
+  },
+  pune:{name:'Pune',state:'Maharashtra',
+    hoods:['Koregaon Park','Aundh','Viman Nagar','Kothrud','Hinjewadi','Camp','Shivajinagar','Baner'],
+    shops:[
+      {n:'The Barber Shop KP',area:'Koregaon Park',r:4.8,rv:389,p:500,sp:['Skin Fade','Pompadour','Beard Design'],hs:true,w:'10 min',v:true,x:64,y:36},
+      {n:'Trim & Scissors',area:'Aundh',r:4.6,rv:234,p:380,sp:['Taper Fade','Undercut','Textured Crop'],hs:false,w:'15 min',v:true,x:26,y:26},
+      {n:'The Fade Shop',area:'Viman Nagar',r:4.7,rv:178,p:450,sp:['Skin Fade','Quiff','Beard Sculpt'],hs:true,w:'8 min',v:true,x:74,y:40},
+      {n:'Style Hub Pune',area:'Kothrud',r:4.4,rv:312,p:300,sp:['Classic Cuts','Beard Trim','Buzz Cut'],hs:false,w:'20 min',v:false,x:24,y:62},
+      {n:'Urban Cuts',area:'Hinjewadi',r:4.3,rv:198,p:350,sp:['Taper Fade','Skin Fade','Beard Design'],hs:true,w:'15 min',v:false,x:10,y:34},
+      {n:'The Camp Barber',area:'Camp',r:4.5,rv:445,p:250,sp:['Classic Cuts','Hot Towel Shave','Traditional Trim'],hs:false,w:'25 min',v:true,x:58,y:68},
+      {n:'Classic Cuts Shivaji',area:'Shivajinagar',r:4.6,rv:267,p:320,sp:['Taper Fade','Beard Design','Undercut'],hs:false,w:'18 min',v:true,x:46,y:44},
+      {n:'The Grooming Co',area:'Wakad',r:4.4,rv:143,p:400,sp:['Skin Fade','Pompadour','Beard Sculpt'],hs:true,w:'10 min',v:false,x:14,y:42},
+      {n:'Cut & Style Baner',area:'Baner',r:4.7,rv:189,p:480,sp:['Textured Crop','Slick Back','Beard Design'],hs:true,w:'12 min',v:true,x:16,y:36},
+      {n:'The Heritage Barber',area:'Camp',r:4.8,rv:678,p:200,sp:['Traditional Shave','Classic Cuts','Hot Towel'],hs:false,w:'20 min',v:true,x:56,y:74},
+      {n:'Prestige Barbers',area:'Koregaon Park',r:4.5,rv:234,p:550,sp:['Skin Fade','Pompadour','Beard Design'],hs:true,w:'5 min',v:true,x:66,y:42},
+      {n:'The Scissor Arts',area:'Aundh',r:4.3,rv:156,p:350,sp:['Taper Fade','Quiff','Beard Trim'],hs:false,w:'22 min',v:false,x:24,y:20},
+    ]
+  },
+  kolkata:{name:'Kolkata',state:'West Bengal',
+    hoods:['Park Street','Salt Lake','Ballygunge','Tollygunge','New Town','Gariahat','Dum Dum','Rajarhat'],
+    shops:[
+      {n:'The Barber Shop Park St',area:'Park Street',r:4.7,rv:567,p:400,sp:['Classic Cuts','Hot Towel Shave','Pompadour'],hs:false,w:'15 min',v:true,x:46,y:52},
+      {n:'Style Hub Salt Lake',area:'Salt Lake',r:4.5,rv:312,p:350,sp:['Taper Fade','Skin Fade','Beard Design'],hs:true,w:'20 min',v:true,x:74,y:34},
+      {n:'Classic Cuts Ballygunge',area:'Ballygunge',r:4.4,rv:234,p:300,sp:['Classic Cuts','Beard Trim','Buzz Cut'],hs:false,w:'25 min',v:false,x:50,y:68},
+      {n:'The Trim Room',area:'Tollygunge',r:4.3,rv:189,p:250,sp:['Taper Fade','Classic Taper','Clean Shave'],hs:false,w:'30 min',v:false,x:44,y:78},
+      {n:'Urban Cuts',area:'Behala',r:4.4,rv:156,p:280,sp:['Skin Fade','Undercut','Beard Design'],hs:true,w:'18 min',v:false,x:26,y:74},
+      {n:'Blade & Brush',area:'Gariahat',r:4.6,rv:267,p:420,sp:['Pompadour','Hot Towel','Skin Fade'],hs:false,w:'10 min',v:true,x:50,y:62},
+      {n:'The Grooming Studio',area:'New Town',r:4.5,rv:143,p:480,sp:['Skin Fade','Quiff','Beard Sculpt'],hs:true,w:'8 min',v:true,x:84,y:26},
+      {n:'Cut & Style Rajarhat',area:'Rajarhat',r:4.3,rv:198,p:320,sp:['Taper Fade','Textured Crop','Beard Trim'],hs:true,w:'22 min',v:false,x:86,y:20},
+      {n:'The Fade Room',area:'Dum Dum',r:4.4,rv:178,p:350,sp:['Skin Fade','Taper Fade','Undercut'],hs:false,w:'20 min',v:true,x:36,y:18},
+      {n:'Royal Barbers',area:'Park Street',r:4.8,rv:445,p:500,sp:['Classic Cuts','Hot Towel','Royal Shave'],hs:false,w:'5 min',v:true,x:44,y:48},
+      {n:'The Heritage Cuts',area:'Shyambazar',r:4.5,rv:378,p:200,sp:['Traditional Shave','Classic Cuts','Hot Towel'],hs:false,w:'15 min',v:true,x:34,y:16},
+      {n:'Prestige Barbershop',area:'Salt Lake',r:4.6,rv:212,p:450,sp:['Pompadour','Skin Fade','Beard Design'],hs:true,w:'10 min',v:true,x:76,y:38},
+    ]
+  },
+  ahmedabad:{name:'Ahmedabad',state:'Gujarat',
+    hoods:['Navrangpura','CG Road','SG Road','Satellite','Vastrapur','Bodakdev','Prahladnagar','Thaltej'],
+    shops:[
+      {n:'The Barber Room',area:'Navrangpura',r:4.6,rv:312,p:380,sp:['Skin Fade','Pompadour','Beard Design'],hs:true,w:'12 min',v:true,x:44,y:48},
+      {n:'Style Zone CG Road',area:'CG Road',r:4.5,rv:267,p:350,sp:['Taper Fade','Undercut','Beard Trim'],hs:false,w:'15 min',v:true,x:50,y:42},
+      {n:'The Fade Studio',area:'SG Road',r:4.7,rv:198,p:450,sp:['Skin Fade','Textured Crop','Quiff'],hs:true,w:'10 min',v:true,x:38,y:26},
+      {n:'Urban Cuts Satellite',area:'Satellite',r:4.4,rv:178,p:320,sp:['Buzz Cut','Classic Cuts','Beard Design'],hs:false,w:'20 min',v:false,x:26,y:56},
+      {n:'Blade & Brush',area:'Vastrapur',r:4.6,rv:234,p:480,sp:['Pompadour','Skin Fade','Hot Towel'],hs:true,w:'8 min',v:true,x:34,y:62},
+      {n:'The Grooming Lounge',area:'Bodakdev',r:4.8,rv:143,p:600,sp:['Skin Fade','Beard Sculpt','Classic Cuts'],hs:true,w:'5 min',v:true,x:26,y:36},
+      {n:'Classic Barbers',area:'Prahladnagar',r:4.3,rv:321,p:250,sp:['Classic Cuts','Clean Shave','Caesar'],hs:false,w:'25 min',v:false,x:32,y:74},
+      {n:'The Cut Lab',area:'Thaltej',r:4.5,rv:156,p:400,sp:['Taper Fade','Slick Back','Beard Design'],hs:true,w:'15 min',v:false,x:20,y:26},
+      {n:'Style Masters',area:'Navrangpura',r:4.4,rv:189,p:350,sp:['Skin Fade','Undercut','Beard Trim'],hs:false,w:'18 min',v:false,x:46,y:52},
+      {n:'The Scissor House',area:'CG Road',r:4.7,rv:267,p:420,sp:['Pompadour','Hot Towel Shave','Classic Cuts'],hs:false,w:'10 min',v:true,x:52,y:46},
+      {n:'Royal Cuts',area:'Satellite',r:4.5,rv:198,p:300,sp:['Taper Fade','Beard Design','Textured Crop'],hs:true,w:'12 min',v:true,x:24,y:60},
+      {n:'The Artisan Barber',area:'SG Road',r:4.6,rv:143,p:500,sp:['Skin Fade','Pompadour','Beard Sculpt'],hs:true,w:'8 min',v:true,x:40,y:20},
+    ]
+  }
 };
 
-const Avatar = ({initials,size=42}) => (
-  <div style={{width:size,height:size,borderRadius:'50%',background:'linear-gradient(135deg,#1E1E1E,#2A2A2A)',border:'1.5px solid var(--g)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:size/3.5,fontWeight:700,color:'var(--g)',flexShrink:0,fontFamily:'Montserrat'}}>
-    {initials.slice(0,2)}
-  </div>
-);
+const HAIRCUTS=[
+  {id:'buzz',name:'Buzz Cut',desc:'Military-clean all-over cut. Low maintenance, sharp look.',price:150,time:'20 min',img:'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&q=80&fit=crop&crop=face'},
+  {id:'skinfade',name:'Skin Fade',desc:'Zero-to-length gradient up the sides. Ultra-clean.',price:350,time:'35 min',img:'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&q=80&fit=crop'},
+  {id:'taper',name:'Taper Fade',desc:'Gradual length taper around ears and nape.',price:300,time:'30 min',img:'https://images.unsplash.com/photo-1599351614938-8c1b6bc41f4a?w=600&q=80&fit=crop'},
+  {id:'pompadour',name:'Pompadour',desc:'Swept-back volume on top. Timeless and bold.',price:420,time:'40 min',img:'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&q=80&fit=crop&crop=face'},
+  {id:'undercut',name:'Undercut',desc:'Shaved sides and back with length kept on top.',price:350,time:'35 min',img:'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=600&q=80&fit=crop&crop=face'},
+  {id:'caesar',name:'Caesar Cut',desc:'Short, horizontally-cut fringe. Classic and clean.',price:200,time:'25 min',img:'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600&q=80&fit=crop'},
+  {id:'quiff',name:'Quiff',desc:'Voluminous front with tapered sides.',price:380,time:'35 min',img:'https://images.unsplash.com/photo-1519869325930-281384150729?w=600&q=80&fit=crop&crop=face'},
+  {id:'textured',name:'Textured Crop',desc:'Modern choppy texture with a high fade.',price:320,time:'30 min',img:'https://images.unsplash.com/photo-1534297635766-a262cdcb8ee4?w=600&q=80&fit=crop'},
+  {id:'slickback',name:'Slick Back',desc:'Combed-back style with clean side fade.',price:340,time:'30 min',img:'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&q=80&fit=crop&crop=face'},
+  {id:'afrofade',name:'Afro Fade',desc:'Natural volume on top with a tight fade.',price:400,time:'40 min',img:'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=600&q=80&fit=crop'},
+];
 
-const Badge = ({children,color='var(--g)'}) => (
-  <span style={{background:`${color}18`,border:`1px solid ${color}44`,color,borderRadius:4,padding:'2px 7px',fontSize:10,fontWeight:600,letterSpacing:.04}}>
-    {children}
-  </span>
-);
+const SHAVES=[
+  {id:'clean',name:'Clean Shave',desc:'Full face razor shave with a hot towel ritual.',price:150,time:'20 min',img:'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=600&q=80&fit=crop'},
+  {id:'beardtrim',name:'Beard Trim',desc:'Precision beard shaping, clean lines and edges.',price:200,time:'25 min',img:'https://images.unsplash.com/photo-1621605810871-ef4d70c48e34?w=600&q=80&fit=crop'},
+  {id:'bearddesign',name:'Beard Design',desc:'Custom beard sculpting with razor line-up.',price:320,time:'35 min',img:'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=600&q=80&fit=crop'},
+  {id:'hottowel',name:'Royal Hot Towel',desc:'Traditional straight-razor shave experience.',price:380,time:'45 min',img:'https://images.unsplash.com/photo-1582493047-f0b1a41aa5b3?w=600&q=80&fit=crop'},
+  {id:'mustache',name:'Moustache Trim',desc:'Precision moustache shaping and styling.',price:100,time:'15 min',img:'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=600&q=80&fit=crop'},
+  {id:'facial',name:'Grooming Facial',desc:'Deep cleanse, steam and moisturise for men.',price:450,time:'50 min',img:'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&q=80&fit=crop'},
+];
 
-const Notif = ({msg,type,onClose}) => (
-  <div style={{position:'fixed',top:16,left:'50%',transform:'translateX(-50%)',zIndex:9999,animation:'slideDown .3s ease',background:type==='error'?'#2A0D0D':'#0D1E0D',border:`1px solid ${type==='error'?'var(--rd)':'var(--gr)'}`,borderRadius:8,padding:'11px 20px',color:type==='error'?'var(--rd)':'var(--gr)',fontFamily:'Montserrat',fontSize:13,fontWeight:500,display:'flex',gap:10,alignItems:'center',boxShadow:'0 4px 20px rgba(0,0,0,.5)',whiteSpace:'nowrap'}}>
-    <span>{type==='error'?'✕':'✓'}</span>{msg}
-    <span onClick={onClose} style={{cursor:'pointer',opacity:.6,marginLeft:6}}>×</span>
-  </div>
-);
+const PIMGS=['photo-1503951914875-452162b0f3f1','photo-1622286342621-4bd786c2447c','photo-1560472354-b33ff0c44a43','photo-1519345182560-3f2917c472ef','photo-1585747860715-2ba37e788b70','photo-1534297635766-a262cdcb8ee4','photo-1566492031773-4f4e44671857','photo-1621605810871-ef4d70c48e34','photo-1582493047-f0b1a41aa5b3','photo-1516975080664-ed2fc6a32937','photo-1519869325930-281384150729','photo-1580618672591-eb180b1a973f','photo-1517841905240-472988babdf9','photo-1599351614938-8c1b6bc41f4a'];
+const pimg=(i,j)=>`https://images.unsplash.com/${PIMGS[(i*6+j+2)%PIMGS.length]}?w=400&h=400&q=75&fit=crop`;
+const TIMES=['9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','2:00 PM','2:30 PM','3:00 PM','3:30 PM','4:00 PM','4:30 PM','5:00 PM','5:30 PM','6:00 PM','6:30 PM'];
 
-// ─── TOP NAV ─────────────────────────────────────────────────────────────────
-const TopNav = ({search,setSearch,mode,setMode,bookCount,onLogo}) => (
-  <div style={{background:'var(--dk)',borderBottom:'1px solid var(--br)',padding:'0 20px',height:60,display:'flex',alignItems:'center',gap:16,position:'sticky',top:0,zIndex:100}}>
-    <div onClick={onLogo} style={{cursor:'pointer',flexShrink:0}}>
-      <div className="serif" style={{fontSize:18,fontWeight:700,color:'var(--g)',letterSpacing:.03,lineHeight:1}}>DARRISON &</div>
-      <div className="serif" style={{fontSize:18,fontWeight:700,color:'var(--g)',letterSpacing:.03,lineHeight:1}}>SACH CO.</div>
-    </div>
-    <div style={{flex:1,maxWidth:420,position:'relative'}}>
-      <span style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',color:'var(--mu)',fontSize:14}}>⌕</span>
-      <input value={search} onChange={e=>setSearch(e.target.value)}
-        placeholder="Search barber shop or area…"
-        style={{width:'100%',background:'var(--c1)',border:'1px solid var(--br)',borderRadius:8,padding:'9px 12px 9px 34px',color:'var(--tx)',fontSize:13,outline:'none',transition:'border .2s'}}
-        onFocus={e=>e.target.style.borderColor='var(--g)'}
-        onBlur={e=>e.target.style.borderColor='var(--br)'}
-      />
-    </div>
-    <div style={{display:'flex',background:'var(--c1)',border:'1px solid var(--br)',borderRadius:8,overflow:'hidden',flexShrink:0}}>
-      {['salon','home'].map(m=>(
-        <button key={m} onClick={()=>setMode(m)} style={{padding:'8px 16px',fontSize:11,fontWeight:600,letterSpacing:.08,border:'none',cursor:'pointer',transition:'all .2s',background:mode===m?'var(--g)':'transparent',color:mode===m?'#000':'var(--mu)'}}>
-          {m==='salon'?'✂ SALON':'🏠 HOME'}
-        </button>
-      ))}
-    </div>
-    {bookCount>0&&<div style={{width:28,height:28,borderRadius:'50%',background:'var(--g)',color:'#000',fontSize:11,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,animation:'pulse 2s infinite'}}>
-      {bookCount}
-    </div>}
-  </div>
-);
+const CSS=`
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,.5)}50%{box-shadow:0 0 0 8px rgba(201,168,76,0)}}
+.fu{animation:fadeUp .35s ease forwards}
+.ch{transition:all .22s;cursor:pointer}.ch:hover{transform:translateY(-2px);border-color:#C9A84C!important}
+.bg{background:linear-gradient(135deg,#C9A84C,#E8C96A);color:#000;border:none;cursor:pointer;font-family:Montserrat,sans-serif;font-weight:600;letter-spacing:.06em;transition:opacity .2s,transform .2s}.bg:hover{opacity:.88;transform:translateY(-1px)}
+.bo{background:transparent;color:#C9A84C;border:1px solid #C9A84C;cursor:pointer;font-family:Montserrat,sans-serif;font-weight:500;transition:all .2s}.bo:hover{background:#C9A84C;color:#000}
+.bgh{background:transparent;color:#777;border:1px solid #2C2C2C;cursor:pointer;font-family:Montserrat,sans-serif;font-size:12px;transition:all .2s}.bgh:hover{color:#F0EAD6;border-color:#777}
+.sr{transition:background .15s;cursor:pointer}.sr:hover{background:rgba(201,168,76,.06)!important}.sr.sl{background:rgba(201,168,76,.1)!important;border-left:2px solid #C9A84C!important}
+.pin{cursor:pointer;transition:transform .2s;position:absolute;transform:translate(-50%,-50%)}.pin:hover{transform:translate(-50%,-50%) scale(1.4)}
+.tag{background:#1E1E1E;border:1px solid #2C2C2C;color:#777;border-radius:20px;padding:3px 10px;font-size:11px;cursor:pointer;transition:all .2s;white-space:nowrap}.tag:hover,.tag.on{background:rgba(201,168,76,.1);border-color:#C9A84C;color:#C9A84C}
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.9);backdrop-filter:blur(6px);z-index:999;display:flex;align-items:center;justify-content:center;padding:16px}
+.ci{cursor:pointer;transition:all .25s;border-radius:12px;overflow:hidden;background:#171717;border:2px solid #2C2C2C}.ci:hover{border-color:#C9A84C;transform:translateY(-3px)}.ci.sel{border-color:#C9A84C;background:#1A1A1A}
+`;
 
-// ─── TAB NAV ─────────────────────────────────────────────────────────────────
-const TabNav = ({view,setView,bookCount}) => (
-  <div style={{background:'var(--dk)',borderBottom:'1px solid var(--br)',display:'flex',padding:'0 20px',gap:4}}>
-    {[['map','◉  Map View'],['browse','◈  Browse Styles'],['bookings',`◎  My Bookings${bookCount>0?` (${bookCount})`:''}`]].map(([v,lbl])=>(
-      <button key={v} onClick={()=>setView(v)} style={{background:'none',border:'none',borderBottom:view===v?'2px solid var(--g)':'2px solid transparent',color:view===v?'var(--g)':'var(--mu)',padding:'12px 16px',fontSize:12,fontWeight:600,letterSpacing:.06,cursor:'pointer',transition:'color .2s',marginBottom:-1}}>
-        {lbl}
-      </button>
-    ))}
-  </div>
-);
+const G=()=><style>{CSS}</style>;
+const Stars=({r,size=12})=>{const f=Math.floor(r),h=r%1>=.5,e=5-f-(h?1:0);return <span style={{fontSize:size,color:'#C9A84C',letterSpacing:-1}}>{'★'.repeat(f)}{h?'½':''}<span style={{color:'#2C2C2C'}}>{'★'.repeat(e)}</span></span>;};
+const Av=({init,size=42})=><div style={{width:size,height:size,borderRadius:'50%',background:'#1E1E1E',border:'1.5px solid #C9A84C',display:'flex',alignItems:'center',justifyContent:'center',fontSize:size/3.5,fontWeight:700,color:'#C9A84C',flexShrink:0,fontFamily:'Montserrat'}}>{init.slice(0,2).toUpperCase()}</div>;
+const Bdg=({c,ch})=><span style={{background:`${c||'#C9A84C'}18`,border:`1px solid ${c||'#C9A84C'}55`,color:c||'#C9A84C',borderRadius:4,padding:'2px 7px',fontSize:10,fontWeight:600,letterSpacing:.04}}>{ch}</span>;
+const Notif=({msg,type,onClose})=><div style={{position:'fixed',top:16,left:'50%',transform:'translateX(-50%)',zIndex:9999,animation:'slideDown .3s ease',background:type==='err'?'#2A0D0D':'#0D1E0D',border:`1px solid ${type==='err'?'#E74C3C':'#2ECC71'}`,borderRadius:8,padding:'11px 20px',color:type==='err'?'#E74C3C':'#2ECC71',fontFamily:'Montserrat',fontSize:13,fontWeight:500,display:'flex',gap:10,alignItems:'center',boxShadow:'0 4px 20px rgba(0,0,0,.6)',whiteSpace:'nowrap'}}>{type==='err'?'✕':'✓'} {msg}<span onClick={onClose} style={{cursor:'pointer',opacity:.6,marginLeft:6}}>×</span></div>;
 
-// ─── MAP ─────────────────────────────────────────────────────────────────────
-const MapArea = ({shops,onSelect,activeId,setActiveId}) => (
-  <div style={{position:'relative',width:'100%',height:'100%',background:'#0C0C0C',overflow:'hidden'}}>
-    <svg style={{position:'absolute',inset:0,width:'100%',height:'100%'}} xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#C9A84C" strokeWidth="0.2" opacity="0.15"/>
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#grid)"/>
-      {/* "Roads" */}
-      {[['0%','32%','100%','48%'],['0%','68%','100%','52%'],['28%','0%','35%','100%'],['62%','0%','58%','100%'],['0%','15%','100%','22%'],['15%','0%','8%','100%']].map(([x1,y1,x2,y2],i)=>(
-        <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#C9A84C" strokeWidth={i<4?1.2:.6} opacity="0.18"/>
-      ))}
-      {/* Area labels */}
-      {['THANE WEST','ANDHERI','BANDRA','DADAR','BORIVALI','MULUND','KURLA'].map((a,i)=>(
-        <text key={a} x={`${8+i*13}%`} y={`${18+(i%3)*28}%`} fill="#C9A84C" fontSize="9" opacity=".25" fontFamily="Montserrat" fontWeight="600" letterSpacing="1.5">{a}</text>
-      ))}
-    </svg>
-
-    {shops.map(s=>(
-      <div key={s.id} className="pin" onClick={()=>onSelect(s)}
-        onMouseEnter={()=>setActiveId(s.id)} onMouseLeave={()=>setActiveId(null)}
-        style={{position:'absolute',left:`${s.mapX}%`,top:`${s.mapY}%`,transform:'translate(-50%,-50%)',zIndex:activeId===s.id?20:1}}>
-        <div style={{width:activeId===s.id?16:11,height:activeId===s.id?16:11,borderRadius:'50%',background:'var(--g)',border:'2px solid #0A0A0A',boxShadow:`0 0 ${activeId===s.id?14:6}px rgba(201,168,76,${activeId===s.id?.8:.4})`,transition:'all .2s'}}/>
-        {activeId===s.id&&(
-          <div style={{position:'absolute',bottom:22,left:'50%',transform:'translateX(-50%)',background:'#181818',border:'1px solid var(--g)',borderRadius:7,padding:'7px 12px',whiteSpace:'nowrap',pointerEvents:'none',zIndex:30}}>
-            <div style={{fontSize:12,fontWeight:600,color:'var(--tx)',marginBottom:2}}>{s.name}</div>
-            <div style={{fontSize:11,color:'var(--g)'}}>★ {s.rating} · ₹{s.priceFrom}+</div>
-            <div style={{fontSize:10,color:'var(--mu)',marginTop:1}}>{s.area}</div>
-          </div>
-        )}
-      </div>
-    ))}
-
-    {/* Legend */}
-    <div style={{position:'absolute',bottom:12,left:12,background:'rgba(10,10,10,.85)',border:'1px solid var(--br)',borderRadius:8,padding:'8px 12px',fontSize:10,color:'var(--mu)'}}>
-      <span style={{color:'var(--g)',marginRight:6}}>●</span>Barber Shop &nbsp;·&nbsp; <span style={{color:'var(--g)'}}>Click to view</span>
-    </div>
-  </div>
-);
-
-// ─── HOME VIEW ───────────────────────────────────────────────────────────────
-const HomeView = ({shops,onSelect,mode}) => {
-  const [activePin,setActivePin]=useState(null);
-  return (
-    <div style={{display:'flex',height:'calc(100vh - 108px)',overflow:'hidden'}}>
-      <div style={{flex:'0 0 52%',borderRight:'1px solid var(--br)'}}>
-        <MapArea shops={shops} onSelect={onSelect} activeId={activePin} setActiveId={setActivePin}/>
-      </div>
-      <div style={{flex:1,overflowY:'auto',padding:16}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
-          <div>
-            <span className="serif" style={{fontSize:20,fontWeight:600,color:'var(--g)'}}>
-              {mode==='home'?'Home Service':'Nearby Barbers'}
-            </span>
-            <span style={{fontSize:12,color:'var(--mu)',marginLeft:10}}>{shops.length} found</span>
-          </div>
-        </div>
-        <div style={{display:'flex',flexDirection:'column',gap:10}}>
-          {shops.map((s,i)=>(
-            <div key={s.id} className="card-hover" onClick={()=>onSelect(s)}
-              style={{background:'var(--c1)',border:'1px solid var(--br)',borderRadius:10,padding:14,cursor:'pointer',animationDelay:`${i*.03}s`}}>
-              <div style={{display:'flex',gap:12,alignItems:'flex-start'}}>
-                <Avatar initials={s.initials}/>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
-                    <span style={{fontSize:14,fontWeight:600}}>{s.name}</span>
-                    {s.verified&&<Badge>✓ Verified</Badge>}
-                    {mode==='home'&&<Badge color='var(--gr)'>🏠 Home</Badge>}
-                  </div>
-                  <div style={{fontSize:11,color:'var(--mu)',margin:'3px 0'}}>{s.area}</div>
-                  <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-                    <Stars rating={s.rating}/>
-                    <span style={{fontSize:11,color:'var(--g)',fontWeight:600}}>{s.rating}</span>
-                    <span style={{fontSize:11,color:'var(--mu)'}}>({s.reviews} reviews)</span>
-                    <span style={{fontSize:11,color:'var(--mu)'}}>⏱ {s.wait} wait</span>
-                  </div>
-                  <div style={{display:'flex',gap:6,marginTop:7,flexWrap:'wrap'}}>
-                    {s.specs.slice(0,2).map(sp=><span key={sp} className="tag">{sp}</span>)}
-                    <span style={{fontSize:11,color:'var(--g)',fontWeight:600}}>From ₹{s.priceFrom}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ─── BROWSE VIEW ─────────────────────────────────────────────────────────────
-const BrowseView = ({shops,onSelect}) => {
-  const [cat,setCat]=useState('cuts');
-  const [selected,setSelected]=useState(null);
-  const styles = cat==='cuts'?HAIRCUTS:SHAVES;
-  return (
-    <div style={{height:'calc(100vh - 108px)',overflowY:'auto',padding:20}}>
-      {/* Category toggle */}
-      <div style={{display:'flex',gap:8,marginBottom:20}}>
-        {[['cuts','✂  Haircuts'],['shaves','🪒  Shaves & Beard']].map(([k,lbl])=>(
-          <button key={k} onClick={()=>{setCat(k);setSelected(null);}} className={cat===k?'btn-g':'btn-o'} style={{padding:'9px 22px',borderRadius:8,fontSize:12}}>
-            {lbl}
-          </button>
-        ))}
-      </div>
-
-      {/* Style grid */}
-      <div className="serif" style={{fontSize:22,marginBottom:14,color:'var(--g)'}}>
-        Browse by {cat==='cuts'?'Haircut Style':'Shave & Beard Style'}
-      </div>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(170px,1fr))',gap:12,marginBottom:selected?28:0}}>
-        {styles.map(st=>(
-          <div key={st.id} onClick={()=>setSelected(selected?.id===st.id?null:st)}
-            style={{borderRadius:10,overflow:'hidden',border:`2px solid ${selected?.id===st.id?'var(--g)':'var(--br)'}`,cursor:'pointer',transition:'all .25s',background:'var(--c1)'}}>
-            <div style={{height:130,overflow:'hidden',position:'relative'}}>
-              <img src={st.img} alt={st.name} onError={e=>{e.target.src=`https://picsum.photos/seed/${st.id}/300/200`;}} style={{transition:'transform .3s'}}
-                onMouseEnter={e=>e.target.style.transform='scale(1.07)'} onMouseLeave={e=>e.target.style.transform='scale(1)'}/>
-              {selected?.id===st.id&&<div style={{position:'absolute',top:8,right:8,background:'var(--g)',borderRadius:'50%',width:22,height:22,display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#000'}}>✓</div>}
-            </div>
-            <div style={{padding:'10px 12px'}}>
-              <div style={{fontSize:13,fontWeight:600}}>{st.name}</div>
-              <div style={{fontSize:11,color:'var(--mu)',marginTop:2}}>{st.desc}</div>
-              <div style={{fontSize:12,color:'var(--g)',fontWeight:600,marginTop:5}}>From ₹{st.price}</div>
-            </div>
+function CitySelect({onSelect,current}){
+  return(
+    <div style={{height:'100vh',background:'#080808',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:24,overflowY:'auto'}}>
+      <div style={{fontFamily:'Cormorant Garamond,serif',fontSize:44,fontWeight:700,color:'#C9A84C',textAlign:'center',lineHeight:1.1,marginBottom:8}}>DARRISON &<br/>SACH CO.</div>
+      <div style={{fontFamily:'Montserrat',fontSize:12,color:'#555',letterSpacing:.16,marginBottom:48,textAlign:'center'}}>INDIA'S BARBER IDENTITY PLATFORM</div>
+      <div style={{fontFamily:'Montserrat',fontSize:10,color:'#C9A84C',letterSpacing:.2,fontWeight:600,marginBottom:18,textAlign:'center'}}>SELECT YOUR CITY</div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,maxWidth:700,width:'100%'}}>
+        {Object.entries(CITIES).map(([key,city])=>(
+          <div key={key} className={`ci${current===key?' sel':''}`} onClick={()=>onSelect(key)} style={{padding:18,textAlign:'center',position:'relative'}}>
+            {current===key&&<div style={{position:'absolute',top:8,right:8,background:'#C9A84C',borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,fontWeight:700,color:'#000'}}>✓</div>}
+            <div style={{fontFamily:'Cormorant Garamond,serif',fontSize:20,fontWeight:600,color:current===key?'#C9A84C':'#F0EAD6',marginBottom:3}}>{city.name}</div>
+            <div style={{fontFamily:'Montserrat',fontSize:10,color:'#555',letterSpacing:.08}}>{city.state}</div>
+            <div style={{fontFamily:'Montserrat',fontSize:11,color:'#C9A84C',marginTop:7,fontWeight:600}}>{city.shops.length} barbers</div>
           </div>
         ))}
       </div>
-
-      {/* Barbers for selected style */}
-      {selected&&(
-        <div className="fade-up">
-          <div style={{display:'flex',alignItems:'center',gap:12,margin:'8px 0 16px'}}>
-            <div style={{height:1,flex:1,background:'var(--br)'}}/>
-            <span className="serif" style={{fontSize:19,color:'var(--g)'}}>Barbers for {selected.name}</span>
-            <div style={{height:1,flex:1,background:'var(--br)'}}/>
-          </div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))',gap:12}}>
-            {shops.filter(s=>(cat==='cuts'?s.cuts:s.shv).find(x=>x.id===selected.id||x.name===selected.name)).slice(0,12).concat(
-              shops.filter(s=>!(cat==='cuts'?s.cuts:s.shv).find(x=>x.id===selected.id)).slice(0,Math.max(0,8-shops.filter(s=>(cat==='cuts'?s.cuts:s.shv).find(x=>x.id===selected.id)).length))
-            ).slice(0,12).map((s,i)=>(
-              <div key={s.id} className="card-hover" onClick={()=>onSelect(s)}
-                style={{background:'var(--c1)',border:'1px solid var(--br)',borderRadius:10,padding:14,cursor:'pointer'}}>
-                <div style={{display:'flex',gap:10,alignItems:'center',marginBottom:10}}>
-                  <Avatar initials={s.initials} size={38}/>
-                  <div>
-                    <div style={{fontSize:13,fontWeight:600}}>{s.name}</div>
-                    <div style={{fontSize:11,color:'var(--mu)'}}>{s.area}</div>
-                  </div>
-                </div>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:6}}>
-                    <Stars rating={s.rating} size={11}/>
-                    <span style={{fontSize:11,color:'var(--g)',fontWeight:600}}>{s.rating}</span>
-                  </div>
-                  <span style={{fontSize:12,color:'var(--g)',fontWeight:600}}>₹{(cat==='cuts'?s.cuts:s.shv)[0]?.price||selected.price}</span>
-                </div>
-                <button className="btn-g" style={{width:'100%',marginTop:10,padding:'8px',borderRadius:6,fontSize:12}}>
-                  View & Book
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ─── SHOP VIEW ───────────────────────────────────────────────────────────────
-const ShopView = ({shop,onBack,onBook,mode}) => {
-  const [tab,setTab]=useState('cuts');
-  const [selSvc,setSelSvc]=useState(null);
-  const [imgView,setImgView]=useState(null);
-  const services = tab==='cuts'?shop.cuts:shop.shv;
-  return (
-    <div style={{height:'calc(100vh - 108px)',overflowY:'auto'}}>
-      {/* Header */}
-      <div style={{background:'var(--c1)',borderBottom:'1px solid var(--br)',padding:'14px 20px',display:'flex',alignItems:'center',gap:14,position:'sticky',top:0,zIndex:50}}>
-        <button onClick={onBack} className="btn-ghost" style={{borderRadius:6,padding:'7px 14px',fontSize:12}}>← Back</button>
-        <Avatar initials={shop.initials} size={44}/>
-        <div style={{flex:1}}>
-          <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
-            <span className="serif" style={{fontSize:21,fontWeight:600}}>{shop.name}</span>
-            {shop.verified&&<Badge>✓ Verified</Badge>}
-            {mode==='home'&&shop.homeService&&<Badge color='var(--gr)'>🏠 Home Service</Badge>}
-          </div>
-          <div style={{display:'flex',gap:12,alignItems:'center',marginTop:2,flexWrap:'wrap'}}>
-            <Stars rating={shop.rating}/>
-            <span style={{fontSize:12,color:'var(--g)',fontWeight:600}}>{shop.rating}</span>
-            <span style={{fontSize:12,color:'var(--mu)'}}>({shop.reviews} reviews)</span>
-            <span style={{fontSize:12,color:'var(--mu)'}}>📍 {shop.area}</span>
-            <span style={{fontSize:12,color:'var(--mu)'}}>⏱ {shop.wait} wait</span>
-          </div>
-        </div>
-        <div style={{flexShrink:0,textAlign:'right'}}>
-          <div style={{fontSize:12,color:'var(--mu)'}}>Starting from</div>
-          <div style={{fontSize:20,fontWeight:700,color:'var(--g)'}}>₹{shop.priceFrom}</div>
-        </div>
-      </div>
-
-      <div style={{display:'flex',gap:0,height:'calc(100% - 78px)'}}>
-        {/* Portfolio */}
-        <div style={{flex:1,padding:20,overflowY:'auto',borderRight:'1px solid var(--br)'}}>
-          <div className="serif" style={{fontSize:18,marginBottom:14,color:'var(--g)'}}>Portfolio</div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:20}}>
-            {shop.portfolio.map((img,i)=>(
-              <div key={i} onClick={()=>setImgView(img)} style={{aspectRatio:'1',borderRadius:8,overflow:'hidden',cursor:'pointer',border:'1px solid var(--br)',transition:'all .25s'}}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--g)';e.currentTarget.style.transform='scale(1.02)';}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--br)';e.currentTarget.style.transform='scale(1)';}}>
-                <img src={img} alt={`Portfolio ${i+1}`} style={{transition:'transform .3s'}}/>
-              </div>
-            ))}
-          </div>
-          {/* Specialties */}
-          <div className="serif" style={{fontSize:16,marginBottom:10,color:'var(--g)'}}>Specialties</div>
-          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-            {shop.specs.map(sp=><span key={sp} className="tag on">{sp}</span>)}
-          </div>
-          {/* Reviews sample */}
-          <div className="serif" style={{fontSize:16,margin:'18px 0 10px',color:'var(--g)'}}>Recent Reviews</div>
-          {[['Rahul M.','Amazing fade, will come back!',5],['Priya S.','Clean cut, very professional',4.5],['Amit K.','Good value for money',4]].map(([name,txt,r])=>(
-            <div key={name} style={{background:'var(--c1)',border:'1px solid var(--br)',borderRadius:8,padding:12,marginBottom:8}}>
-              <div style={{display:'flex',justifyContent:'space-between',marginBottom:5}}>
-                <span style={{fontSize:13,fontWeight:600}}>{name}</span>
-                <Stars rating={r} size={11}/>
-              </div>
-              <p style={{fontSize:12,color:'var(--mu)'}}>{txt}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Services Sidebar */}
-        <div style={{width:300,display:'flex',flexDirection:'column',background:'var(--c1)'}}>
-          <div style={{padding:'14px 16px',borderBottom:'1px solid var(--br)'}}>
-            <div className="serif" style={{fontSize:17,color:'var(--g)',marginBottom:10}}>Book a Service</div>
-            <div style={{display:'flex',background:'var(--dk)',borderRadius:8,overflow:'hidden'}}>
-              {[['cuts','✂ Haircuts'],['shaves','🪒 Shaves']].map(([k,lbl])=>(
-                <button key={k} onClick={()=>{setTab(k);setSelSvc(null);}} style={{flex:1,padding:'8px',fontSize:11,fontWeight:600,border:'none',cursor:'pointer',background:tab===k?'var(--g)':'transparent',color:tab===k?'#000':'var(--mu)',transition:'all .2s'}}>
-                  {lbl}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div style={{flex:1,overflowY:'auto'}}>
-            {services.map(svc=>(
-              <div key={svc.id} className={`svc-row${selSvc?.id===svc.id?' sel':''}`}
-                onClick={()=>setSelSvc(selSvc?.id===svc.id?null:svc)}
-                style={{padding:'12px 16px',borderBottom:'1px solid var(--br)',borderLeft:'2px solid transparent',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                <div>
-                  <div style={{fontSize:13,fontWeight:600,marginBottom:2}}>{svc.name}</div>
-                  <div style={{fontSize:11,color:'var(--mu)',marginBottom:3}}>{svc.desc}</div>
-                  <span style={{fontSize:10,color:'var(--mu)',background:'var(--c2)',padding:'2px 7px',borderRadius:10}}>⏱ {svc.time}</span>
-                </div>
-                <div style={{textAlign:'right',marginLeft:8}}>
-                  <div style={{fontSize:15,fontWeight:700,color:'var(--g)'}}>₹{svc.price}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div style={{padding:'14px 16px',borderTop:'1px solid var(--br)'}}>
-            {selSvc&&<div style={{background:'rgba(201,168,76,.08)',border:'1px solid rgba(201,168,76,.3)',borderRadius:8,padding:'10px 12px',marginBottom:10,fontSize:12}}>
-              <div style={{color:'var(--g)',fontWeight:600,marginBottom:3}}>Selected: {selSvc.name}</div>
-              <div style={{display:'flex',justifyContent:'space-between',color:'var(--mu)'}}>
-                <span>⏱ {selSvc.time}</span><span style={{color:'var(--g)',fontWeight:700}}>₹{selSvc.price}</span>
-              </div>
-            </div>}
-            <button className="btn-g" disabled={!selSvc} onClick={()=>selSvc&&onBook(selSvc)}
-              style={{width:'100%',padding:'12px',borderRadius:8,fontSize:13,opacity:selSvc?1:.5,cursor:selSvc?'pointer':'not-allowed'}}>
-              {selSvc?'Book Appointment →':'Select a Service'}
-            </button>
-            {mode==='home'&&shop.homeService&&(
-              <button className="btn-o" disabled={!selSvc} onClick={()=>selSvc&&onBook({...selSvc,name:selSvc.name+' (Home)',price:selSvc.price+150})}
-                style={{width:'100%',padding:'10px',borderRadius:8,fontSize:12,marginTop:8,opacity:selSvc?1:.5}}>
-                🏠 Book Home Visit (+₹150)
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Image lightbox */}
-      {imgView&&(
-        <div className="modal-bg" onClick={()=>setImgView(null)}>
-          <div onClick={e=>e.stopPropagation()} style={{maxWidth:500,width:'100%',borderRadius:12,overflow:'hidden',border:'1px solid var(--g)'}}>
-            <img src={imgView} alt="Portfolio" style={{height:440,objectFit:'cover',width:'100%'}}/>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ─── BOOKING MODAL ───────────────────────────────────────────────────────────
-const BookingModal = ({shop,service,onConfirm,onClose}) => {
-  const today = new Date().toISOString().split('T')[0];
-  const [date,setDate]=useState(today);
-  const [time,setTime]=useState('');
-  const [repeat,setRepeat]=useState('none');
-  const [notes,setNotes]=useState('');
-
-  const inputStyle={background:'var(--c2)',border:'1px solid var(--br)',color:'var(--tx)',borderRadius:8,padding:'10px 12px',fontSize:13,width:'100%',outline:'none'};
-  return (
-    <div className="modal-bg" onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} className="fade-up"
-        style={{background:'var(--dk)',border:'1px solid var(--br)',borderRadius:14,width:'100%',maxWidth:460,overflow:'hidden',boxShadow:'0 20px 60px rgba(0,0,0,.7)'}}>
-        {/* Header */}
-        <div style={{background:'var(--c1)',padding:'18px 22px',borderBottom:'1px solid var(--br)',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
-          <div>
-            <div className="serif" style={{fontSize:20,color:'var(--g)',fontWeight:600}}>Book Appointment</div>
-            <div style={{fontSize:12,color:'var(--mu)',marginTop:2}}>{shop.name} · {shop.area}</div>
-          </div>
-          <button onClick={onClose} style={{background:'none',border:'none',color:'var(--mu)',fontSize:20,cursor:'pointer',lineHeight:1}}>×</button>
-        </div>
-        <div style={{padding:22,display:'flex',flexDirection:'column',gap:14}}>
-          {/* Service summary */}
-          <div style={{background:'rgba(201,168,76,.08)',border:'1px solid rgba(201,168,76,.25)',borderRadius:10,padding:'12px 14px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-            <div>
-              <div style={{fontSize:13,fontWeight:600,color:'var(--g)'}}>{service?.name}</div>
-              <div style={{fontSize:11,color:'var(--mu)',marginTop:2}}>⏱ {service?.time}</div>
-            </div>
-            <div style={{fontSize:20,fontWeight:700,color:'var(--g)'}}>₹{service?.price}</div>
-          </div>
-
-          {/* Date */}
-          <div>
-            <label style={{fontSize:11,color:'var(--mu)',fontWeight:600,letterSpacing:.08,display:'block',marginBottom:6}}>SELECT DATE</label>
-            <input type="date" value={date} min={today} onChange={e=>setDate(e.target.value)} style={inputStyle}/>
-          </div>
-
-          {/* Time slots */}
-          <div>
-            <label style={{fontSize:11,color:'var(--mu)',fontWeight:600,letterSpacing:.08,display:'block',marginBottom:8}}>SELECT TIME</label>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6}}>
-              {TIMES.map(t=>(
-                <button key={t} onClick={()=>setTime(t)}
-                  style={{padding:'8px 4px',borderRadius:6,border:`1px solid ${time===t?'var(--g)':'var(--br)'}`,background:time===t?'rgba(201,168,76,.15)':'var(--c2)',color:time===t?'var(--g)':'var(--mu)',fontSize:11,cursor:'pointer',transition:'all .2s',fontFamily:'Montserrat'}}>
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Repeat */}
-          <div>
-            <label style={{fontSize:11,color:'var(--mu)',fontWeight:600,letterSpacing:.08,display:'block',marginBottom:6}}>REPEAT BOOKING</label>
-            <select value={repeat} onChange={e=>setRepeat(e.target.value)} style={inputStyle}>
-              <option value="none">No repeat — one time</option>
-              <option value="weekly">Every week (same day & time)</option>
-              <option value="biweekly">Every 2 weeks</option>
-              <option value="monthly">Every month</option>
-            </select>
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label style={{fontSize:11,color:'var(--mu)',fontWeight:600,letterSpacing:.08,display:'block',marginBottom:6}}>NOTES (Optional)</label>
-            <input value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Any preference for the barber…"
-              style={{...inputStyle,}}/>
-          </div>
-        </div>
-
-        <div style={{padding:'0 22px 22px',display:'flex',gap:10}}>
-          <button onClick={onClose} className="btn-ghost" style={{flex:1,padding:'12px',borderRadius:8,fontSize:13}}>Cancel</button>
-          <button onClick={()=>{if(date&&time)onConfirm({date,time,repeat,notes})}} className="btn-g"
-            style={{flex:2,padding:'12px',borderRadius:8,fontSize:13,opacity:date&&time?1:.55,cursor:date&&time?'pointer':'not-allowed'}}>
-            {date&&time?`Confirm Booking →`:'Select date & time'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ─── BOOKINGS VIEW ───────────────────────────────────────────────────────────
-const BookingsView = ({bookings,onCancel}) => (
-  <div style={{height:'calc(100vh - 108px)',overflowY:'auto',padding:24,maxWidth:680,margin:'0 auto'}}>
-    <div className="serif" style={{fontSize:26,color:'var(--g)',marginBottom:6}}>My Bookings</div>
-    <p style={{fontSize:13,color:'var(--mu)',marginBottom:20}}>Your upcoming and past appointments.</p>
-    {bookings.length===0?(
-      <div style={{textAlign:'center',padding:'60px 20px',color:'var(--mu)'}}>
-        <div style={{fontSize:48,marginBottom:16}}>✂</div>
-        <div className="serif" style={{fontSize:22,marginBottom:8}}>No bookings yet</div>
-        <p style={{fontSize:13}}>Head to the map or browse styles to find your barber.</p>
-      </div>
-    ):bookings.map((b,i)=>(
-      <div key={b.id} className="fade-up" style={{background:'var(--c1)',border:'1px solid var(--br)',borderRadius:12,padding:18,marginBottom:12,animationDelay:`${i*.06}s`}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:12}}>
-          <div style={{display:'flex',gap:12,alignItems:'center'}}>
-            <Avatar initials={b.shop.initials} size={42}/>
-            <div>
-              <div style={{fontSize:14,fontWeight:600}}>{b.shop.name}</div>
-              <div style={{fontSize:12,color:'var(--mu)'}}>{b.shop.area}</div>
-            </div>
-          </div>
-          <Badge color={b.status==='cancelled'?'var(--rd)':'var(--gr)'}>{b.status==='cancelled'?'Cancelled':'Confirmed'}</Badge>
-        </div>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,background:'var(--c2)',borderRadius:8,padding:'12px 14px'}}>
-          {[['Service',b.service?.name||'—'],['Price',`₹${b.service?.price||'—'}`],['Date',b.date],['Time',b.time],['Repeat',b.repeat==='none'?'One-time':b.repeat.charAt(0).toUpperCase()+b.repeat.slice(1)],['Type',b.mode==='home'?'Home Visit':'Salon']].map(([k,v])=>(
-            <div key={k}>
-              <div style={{fontSize:10,color:'var(--mu)',letterSpacing:.08,fontWeight:600}}>{k.toUpperCase()}</div>
-              <div style={{fontSize:13,marginTop:2,color:k==='Price'?'var(--g)':'var(--tx)',fontWeight:k==='Price'?700:400}}>{v}</div>
-            </div>
-          ))}
-        </div>
-        <div style={{display:'flex',gap:8,marginTop:12}}>
-          <button className="btn-ghost" onClick={()=>onCancel(b.id)} style={{borderRadius:6,padding:'8px 14px',fontSize:11}}>Cancel</button>
-          <button className="btn-o" style={{borderRadius:6,padding:'8px 14px',fontSize:11}}>Reschedule</button>
-          {b.repeat!=='none'&&<Badge color='var(--g)'>🔁 {b.repeat}</Badge>}
-        </div>
-      </div>
-    ))}
-  </div>
-);
-
-// ─── APP ─────────────────────────────────────────────────────────────────────
-function App() {
-  const [view,setView]=useState('map');
-  const [mode,setMode]=useState('salon');
-  const [search,setSearch]=useState('');
-  const [shop,setShop]=useState(null);
-  const [selSvc,setSelSvc]=useState(null);
-  const [booking,setBooking]=useState(false);
-  const [bookings,setBookings]=useState([]);
-  const [notif,setNotif]=useState(null);
-
-  const shops = useMemo(()=>BARBERS.filter(b=>{
-    const q=search.toLowerCase();
-    return (!q||(b.name.toLowerCase().includes(q)||b.area.toLowerCase().includes(q)));
-  }).filter(b=>mode==='home'?b.homeService:true),[search,mode]);
-
-  const notify=(msg,type='success')=>{
-    setNotif({msg,type});
-    setTimeout(()=>setNotif(null),3200);
-  };
-
-  const handleBook=(svc)=>{setSelSvc(svc);setBooking(true);};
-
-  const confirmBook=(data)=>{
-    const b={id:Date.now(),shop,service:selSvc,mode,status:'confirmed',...data};
-    setBookings(p=>[b,...p]);
-    setBooking(false);
-    notify(`Booking confirmed at ${shop.name}!`);
-  };
-
-  const cancelBooking=(id)=>{
-    setBookings(p=>p.map(b=>b.id===id?{...b,status:'cancelled'}:b));
-    notify('Booking cancelled.','error');
-  };
-
-  const goToShop=(s)=>{setShop(s);setView('shop');};
-
-  return (
-    <div style={{minHeight:'100vh',background:'var(--bk)',display:'flex',flexDirection:'column'}}>
-      <G/>
-      {notif&&<Notif {...notif} onClose={()=>setNotif(null)}/>}
-
-      <TopNav search={search} setSearch={setSearch} mode={mode} setMode={m=>{setMode(m);if(view==='shop')setView('map');}} bookCount={bookings.filter(b=>b.status==='confirmed').length} onLogo={()=>{setView('map');setShop(null);}}/>
-
-      {view!=='shop'&&<TabNav view={view} setView={v=>{setView(v);setShop(null);}} bookCount={bookings.filter(b=>b.status==='confirmed').length}/>}
-
-      {view==='map'&&<HomeView shops={shops} onSelect={goToShop} mode={mode}/>}
-      {view==='browse'&&<BrowseView shops={shops} onSelect={goToShop}/>}
-      {view==='shop'&&shop&&<ShopView shop={shop} onBack={()=>setView('map')} onBook={handleBook} mode={mode}/>}
-      {view==='bookings'&&<BookingsView bookings={bookings} onCancel={cancelBooking}/>}
-
-      {booking&&<BookingModal shop={shop} service={selSvc} onConfirm={confirmBook} onClose={()=>setBooking(false)}/>}
+      <div style={{fontFamily:'Montserrat',fontSize:11,color:'#444',marginTop:36,textAlign:'center'}}>More cities coming soon — Jaipur · Surat · Lucknow · Chandigarh · Bhopal</div>
     </div>
   );
 }
 
-const { useState, useMemo } = React;
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
-  </script>
+function Nav({search,setSearch,mode,setMode,bookN,onLogo,city,onCity}){
+  return(
+    <div style={{background:'#111',borderBottom:'1px solid #2C2C2C',padding:'0 18px',height:58,display:'flex',alignItems:'center',gap:12,position:'sticky',top:0,zIndex:100,flexShrink:0}}>
+      <div onClick={onLogo} style={{cursor:'pointer',flexShrink:0}}>
+        <div style={{fontFamily:'Cormorant Garamond,serif',fontSize:16,fontWeight:700,color:'#C9A84C',lineHeight:1.1}}>DARRISON &</div>
+        <div style={{fontFamily:'Cormorant Garamond,serif',fontSize:16,fontWeight:700,color:'#C9A84C',lineHeight:1.1}}>SACH CO.</div>
+      </div>
+      <div onClick={onCity} style={{display:'flex',alignItems:'center',gap:6,background:'#171717',border:'1px solid #2C2C2C',borderRadius:7,padding:'6px 11px',cursor:'pointer',transition:'border .2s',flexShrink:0}} onMouseEnter={e=>e.currentTarget.style.borderColor='#C9A84C'} onMouseLeave={e=>e.currentTarget.style.borderColor='#2C2C2C'}>
+        <span style={{fontSize:13,fontFamily:'Montserrat',color:'#F0EAD6',fontWeight:500}}>📍 {CITIES[city].name}</span>
+        <span style={{color:'#C9A84C',fontSize:10}}>▼</span>
+      </div>
+      <div style={{flex:1,maxWidth:360,position:'relative'}}>
+        <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:'#555',fontSize:14}}>⌕</span>
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={`Search barbers in ${CITIES[city].name}…`} style={{width:'100%',background:'#171717',border:'1px solid #2C2C2C',borderRadius:7,padding:'8px 12px 8px 30px',color:'#F0EAD6',fontSize:13,outline:'none',fontFamily:'Montserrat',transition:'border .2s'}} onFocus={e=>e.target.style.borderColor='#C9A84C'} onBlur={e=>e.target.style.borderColor='#2C2C2C'}/>
+      </div>
+      <div style={{display:'flex',background:'#171717',border:'1px solid #2C2C2C',borderRadius:7,overflow:'hidden',flexShrink:0}}>
+        {[['salon','✂ SALON'],['home','🏠 HOME']].map(([m,l])=>(
+          <button key={m} onClick={()=>setMode(m)} style={{padding:'7px 13px',fontSize:11,fontWeight:600,letterSpacing:.08,border:'none',cursor:'pointer',background:mode===m?'#C9A84C':'transparent',color:mode===m?'#000':'#777',fontFamily:'Montserrat',transition:'all .2s'}}>{l}</button>
+        ))}
+      </div>
+      {bookN>0&&<div style={{width:26,height:26,borderRadius:'50%',background:'#C9A84C',color:'#000',fontSize:11,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,animation:'pulse 2s infinite'}}>{bookN}</div>}
+    </div>
+  );
+}
+
+function Tabs({view,setView,bookN}){
+  return(
+    <div style={{background:'#111',borderBottom:'1px solid #2C2C2C',display:'flex',padding:'0 18px',flexShrink:0}}>
+      {[['map','◉  Map View'],['browse','◈  Browse Styles'],['bookings',`◎  Bookings${bookN>0?` (${bookN})`:''}`]].map(([v,l])=>(
+        <button key={v} onClick={()=>setView(v)} style={{background:'none',border:'none',borderBottom:view===v?'2px solid #C9A84C':'2px solid transparent',color:view===v?'#C9A84C':'#666',padding:'11px 15px',fontSize:12,fontWeight:600,letterSpacing:.06,cursor:'pointer',marginBottom:-1,fontFamily:'Montserrat',transition:'color .2s'}}>{l}</button>
+      ))}
+    </div>
+  );
+}
+
+function MapArea({city,shops,onSelect}){
+  const [hov,setHov]=useState(null);
+  const cd=CITIES[city];
+  return(
+    <div style={{position:'relative',width:'100%',height:'100%',background:'#0C0C0C',overflow:'hidden'}}>
+      <svg style={{position:'absolute',inset:0,width:'100%',height:'100%'}}>
+        <defs><pattern id="gp" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#C9A84C" strokeWidth=".18" opacity=".12"/></pattern></defs>
+        <rect width="100%" height="100%" fill="url(#gp)"/>
+        {[['0%','35%','100%','50%'],['0%','65%','100%','52%'],['32%','0%','36%','100%'],['68%','0%','64%','100%']].map(([x1,y1,x2,y2],i)=>(
+          <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#C9A84C" strokeWidth={i<2?1.1:.55} opacity=".18"/>
+        ))}
+        {cd.hoods.map((h,i)=>(
+          <text key={h} x={`${7+i*11}%`} y={`${18+(i%3)*28}%`} fill="#C9A84C" fontSize="8.5" opacity=".25" fontFamily="Montserrat" fontWeight="600" letterSpacing="1.4">{h.toUpperCase()}</text>
+        ))}
+        <text x="50%" y="95%" fill="#C9A84C" fontSize="11" opacity=".28" fontFamily="Cormorant Garamond" fontStyle="italic" textAnchor="middle">{cd.name}, {cd.state}</text>
+      </svg>
+      {shops.map((s,i)=>(
+        <div key={i} className="pin" style={{left:`${s.x}%`,top:`${s.y}%`,zIndex:hov===i?20:1}} onClick={()=>onSelect(s)} onMouseEnter={()=>setHov(i)} onMouseLeave={()=>setHov(null)}>
+          <div style={{width:hov===i?15:10,height:hov===i?15:10,borderRadius:'50%',background:'#C9A84C',border:'2px solid #0A0A0A',boxShadow:`0 0 ${hov===i?14:5}px rgba(201,168,76,${hov===i?.8:.35})`,transition:'all .2s'}}/>
+          {hov===i&&(
+            <div style={{position:'absolute',bottom:22,left:'50%',transform:'translateX(-50%)',background:'#181818',border:'1px solid #C9A84C',borderRadius:7,padding:'7px 11px',whiteSpace:'nowrap',pointerEvents:'none',zIndex:30}}>
+              <div style={{fontSize:12,fontWeight:600,color:'#F0EAD6',marginBottom:2,fontFamily:'Montserrat'}}>{s.n}</div>
+              <div style={{fontSize:11,color:'#C9A84C',fontFamily:'Montserrat'}}>★ {s.r} · ₹{s.p}+</div>
+              <div style={{fontSize:10,color:'#777',marginTop:1,fontFamily:'Montserrat'}}>{s.area}</div>
+            </div>
+          )}
+        </div>
+      ))}
+      <div style={{position:'absolute',bottom:10,left:10,background:'rgba(8,8,8,.85)',border:'1px solid #2C2C2C',borderRadius:7,padding:'6px 11px',fontSize:10,color:'#666',fontFamily:'Montserrat'}}><span style={{color:'#C9A84C',marginRight:5}}>●</span>Barber · <span style={{color:'#C9A84C'}}>Click to view</span></div>
+    </div>
+  );
+}
+
+function HomeView({city,shops,onSelect,mode}){
+  return(
+    <div style={{display:'flex',height:'100%',overflow:'hidden'}}>
+      <div style={{flex:'0 0 52%',borderRight:'1px solid #2C2C2C'}}><MapArea city={city} shops={shops} onSelect={onSelect}/></div>
+      <div style={{flex:1,overflowY:'auto',padding:14}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+          <span style={{fontFamily:'Cormorant Garamond,serif',fontSize:19,fontWeight:600,color:'#C9A84C'}}>{mode==='home'?'Home Service':'Barbers in '+CITIES[city].name}</span>
+          <span style={{fontSize:11,color:'#555',fontFamily:'Montserrat'}}>{shops.length} found</span>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:9}}>
+          {shops.map((s,i)=>(
+            <div key={i} className="ch" onClick={()=>onSelect(s)} style={{background:'#171717',border:'1px solid #2C2C2C',borderRadius:9,padding:13,cursor:'pointer'}}>
+              <div style={{display:'flex',gap:11,alignItems:'flex-start'}}>
+                <Av init={s.n} size={40}/>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap',marginBottom:2}}>
+                    <span style={{fontSize:13,fontWeight:600,fontFamily:'Montserrat',color:'#F0EAD6'}}>{s.n}</span>
+                    {s.v&&<Bdg ch="✓ Verified"/>}
+                    {s.note&&<Bdg c='#E8C96A' ch={s.note}/>}
+                    {mode==='home'&&s.hs&&<Bdg c='#2ECC71' ch="🏠 Home"/>}
+                  </div>
+                  <div style={{fontSize:11,color:'#666',marginBottom:4,fontFamily:'Montserrat'}}>📍 {s.area} · ⏱ {s.w} wait</div>
+                  <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:5}}><Stars r={s.r}/><span style={{fontSize:11,color:'#C9A84C',fontWeight:600,fontFamily:'Montserrat'}}>{s.r}</span><span style={{fontSize:11,color:'#555',fontFamily:'Montserrat'}}>({s.rv})</span></div>
+                  <div style={{display:'flex',gap:5,flexWrap:'wrap',alignItems:'center'}}>
+                    {s.sp.slice(0,2).map(x=><span key={x} className="tag">{x}</span>)}
+                    <span style={{fontSize:11,color:'#C9A84C',fontWeight:600,fontFamily:'Montserrat'}}>From ₹{s.p}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BrowseView({shops,onSelect}){
+  const [cat,setCat]=useState('cuts');
+  const [sel,setSel]=useState(null);
+  const items=cat==='cuts'?HAIRCUTS:SHAVES;
+  return(
+    <div style={{height:'100%',overflowY:'auto',padding:18}}>
+      <div style={{display:'flex',gap:8,marginBottom:18}}>
+        {[['cuts','✂  Haircuts'],['shaves','🪒  Shaves & Beard']].map(([k,l])=>(
+          <button key={k} onClick={()=>{setCat(k);setSel(null);}} className={cat===k?'bg':'bo'} style={{padding:'8px 20px',borderRadius:7,fontSize:12}}>{l}</button>
+        ))}
+      </div>
+      <div style={{fontFamily:'Cormorant Garamond,serif',fontSize:21,marginBottom:14,color:'#C9A84C'}}>Browse by {cat==='cuts'?'Haircut Style':'Shave & Beard Style'}</div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(168px,1fr))',gap:11,marginBottom:sel?26:0}}>
+        {items.map(st=>(
+          <div key={st.id} className="ci" onClick={()=>setSel(sel?.id===st.id?null:st)} style={{border:`2px solid ${sel?.id===st.id?'#C9A84C':'#2C2C2C'}`}}>
+            <div style={{height:135,overflow:'hidden',position:'relative'}}>
+              <img src={st.img} alt={st.name} onError={e=>{e.target.src=`https://picsum.photos/seed/${st.id}77/300/200`;}} style={{width:'100%',height:'100%',objectFit:'cover',transition:'transform .3s'}} onMouseEnter={e=>e.target.style.transform='scale(1.07)'} onMouseLeave={e=>e.target.style.transform='scale(1)'}/>
+              {sel?.id===st.id&&<div style={{position:'absolute',top:7,right:7,background:'#C9A84C',borderRadius:'50%',width:20,height:20,display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:700,color:'#000'}}>✓</div>}
+            </div>
+            <div style={{padding:'9px 11px'}}>
+              <div style={{fontSize:13,fontWeight:600,fontFamily:'Montserrat',color:'#F0EAD6'}}>{st.name}</div>
+              <div style={{fontSize:10.5,color:'#666',marginTop:2,lineHeight:1.4,fontFamily:'Montserrat'}}>{st.desc}</div>
+              <div style={{fontSize:11.5,color:'#C9A84C',fontWeight:600,marginTop:5,fontFamily:'Montserrat'}}>₹{st.price} · {st.time}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      {sel&&(
+        <div className="fu">
+          <div style={{display:'flex',alignItems:'center',gap:10,margin:'6px 0 16px'}}><div style={{height:1,flex:1,background:'#2C2C2C'}}/><span style={{fontFamily:'Cormorant Garamond,serif',fontSize:19,color:'#C9A84C'}}>Barbers for {sel.name}</span><div style={{height:1,flex:1,background:'#2C2C2C'}}/></div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(250px,1fr))',gap:11}}>
+            {shops.slice(0,12).map((s,i)=>(
+              <div key={i} className="ch" onClick={()=>onSelect(s)} style={{background:'#171717',border:'1px solid #2C2C2C',borderRadius:9,padding:13,cursor:'pointer'}}>
+                <div style={{display:'flex',gap:9,alignItems:'center',marginBottom:9}}><Av init={s.n} size={36}/><div><div style={{fontSize:13,fontWeight:600,fontFamily:'Montserrat',color:'#F0EAD6'}}>{s.n}</div><div style={{fontSize:11,color:'#666',fontFamily:'Montserrat'}}>{s.area}</div></div></div>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:9}}><div style={{display:'flex',alignItems:'center',gap:5}}><Stars r={s.r} size={11}/><span style={{fontSize:11,color:'#C9A84C',fontWeight:600,fontFamily:'Montserrat'}}>{s.r}</span></div><span style={{fontSize:12,color:'#C9A84C',fontWeight:600,fontFamily:'Montserrat'}}>₹{s.p}+</span></div>
+                <button className="bg" style={{width:'100%',padding:'8px',borderRadius:6,fontSize:12}}>View & Book</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ShopView({shop,onBack,onBook,mode,idx}){
+  const [tab,setTab]=useState('cuts');
+  const [selS,setSelS]=useState(null);
+  const [imgV,setImgV]=useState(null);
+  const svcs=tab==='cuts'?HAIRCUTS.slice(0,6+(idx%4)):SHAVES.slice(0,3+(idx%3));
+  const portfolio=Array.from({length:6},(_,j)=>pimg(idx,j));
+  const adjPrice=(base)=>base+Math.floor((shop.p-200)/50)*10;
+  return(
+    <div style={{height:'100%',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{background:'#171717',borderBottom:'1px solid #2C2C2C',padding:'13px 18px',display:'flex',alignItems:'center',gap:12,flexShrink:0}}>
+        <button onClick={onBack} className="bgh" style={{borderRadius:6,padding:'7px 13px'}}>← Back</button>
+        <Av init={shop.n} size={42}/>
+        <div style={{flex:1}}>
+          <div style={{display:'flex',alignItems:'center',gap:7,flexWrap:'wrap',marginBottom:2}}>
+            <span style={{fontFamily:'Cormorant Garamond,serif',fontSize:20,fontWeight:600,color:'#F0EAD6'}}>{shop.n}</span>
+            {shop.v&&<Bdg ch="✓ Verified"/>}
+            {shop.note&&<Bdg c='#E8C96A' ch={shop.note}/>}
+          </div>
+          <div style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+            <Stars r={shop.r}/><span style={{fontSize:12,color:'#C9A84C',fontWeight:600,fontFamily:'Montserrat'}}>{shop.r}</span>
+            <span style={{fontSize:12,color:'#666',fontFamily:'Montserrat'}}>({shop.rv} reviews)</span>
+            <span style={{fontSize:12,color:'#666',fontFamily:'Montserrat'}}>📍 {shop.area}</span>
+            <span style={{fontSize:12,color:'#666',fontFamily:'Montserrat'}}>⏱ {shop.w} wait</span>
+          </div>
+        </div>
+        <div style={{flexShrink:0,textAlign:'right'}}><div style={{fontSize:11,color:'#666',fontFamily:'Montserrat'}}>From</div><div style={{fontSize:20,fontWeight:700,color:'#C9A84C',fontFamily:'Montserrat'}}>₹{shop.p}</div></div>
+      </div>
+      <div style={{display:'flex',flex:1,overflow:'hidden'}}>
+        <div style={{flex:1,padding:18,overflowY:'auto',borderRight:'1px solid #2C2C2C'}}>
+          <div style={{fontFamily:'Cormorant Garamond,serif',fontSize:18,color:'#C9A84C',marginBottom:13}}>Portfolio</div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:7,marginBottom:18}}>
+            {portfolio.map((img,i)=>(
+              <div key={i} onClick={()=>setImgV(img)} style={{aspectRatio:'1',borderRadius:7,overflow:'hidden',cursor:'pointer',border:'1px solid #2C2C2C',transition:'all .25s'}} onMouseEnter={e=>{e.currentTarget.style.borderColor='#C9A84C';e.currentTarget.style.transform='scale(1.02)';}} onMouseLeave={e=>{e.currentTarget.style.borderColor='#2C2C2C';e.currentTarget.style.transform='scale(1)';}}>
+                <img src={img} alt="" onError={e=>{e.target.src=`https://picsum.photos/seed/${idx*7+i+10}/400/400`;}} style={{width:'100%',height:'100%',objectFit:'cover',transition:'transform .3s'}}/>
+              </div>
+            ))}
+          </div>
+          <div style={{fontFamily:'Cormorant Garamond,serif',fontSize:15,color:'#C9A84C',marginBottom:7}}>Specialties</div>
+          <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:18}}>{shop.sp.map(x=><span key={x} className="tag on">{x}</span>)}</div>
+          <div style={{fontFamily:'Cormorant Garamond,serif',fontSize:15,color:'#C9A84C',marginBottom:9}}>Recent Reviews</div>
+          {[['Ravi K.','Best fade in the city. Absolute precision.',5],['Meera S.',"My husband won't go anywhere else now.",4.5],['Arjun P.','Clean, fast, exactly what I asked for.',4]].map(([n,t,r])=>(
+            <div key={n} style={{background:'#171717',border:'1px solid #2C2C2C',borderRadius:7,padding:11,marginBottom:7}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}><span style={{fontSize:13,fontWeight:600,fontFamily:'Montserrat',color:'#F0EAD6'}}>{n}</span><Stars r={r} size={11}/></div>
+              <p style={{fontSize:12,color:'#666',fontFamily:'Montserrat',lineHeight:1.5}}>{t}</p>
+            </div>
+          ))}
+        </div>
+        <div style={{width:290,display:'flex',flexDirection:'column',background:'#171717',flexShrink:0}}>
+          <div style={{padding:'13px 15px',borderBottom:'1px solid #2C2C2C'}}>
+            <div style={{fontFamily:'Cormorant Garamond,serif',fontSize:16,color:'#C9A84C',marginBottom:9}}>Book a Service</div>
+            <div style={{display:'flex',background:'#111',borderRadius:7,overflow:'hidden'}}>
+              {[['cuts','✂ Haircuts'],['shaves','🪒 Shaves']].map(([k,l])=>(
+                <button key={k} onClick={()=>{setTab(k);setSelS(null);}} style={{flex:1,padding:'7px',fontSize:11,fontWeight:600,border:'none',cursor:'pointer',background:tab===k?'#C9A84C':'transparent',color:tab===k?'#000':'#666',fontFamily:'Montserrat',transition:'all .2s'}}>{l}</button>
+              ))}
+            </div>
+          </div>
+          <div style={{flex:1,overflowY:'auto'}}>
+            {svcs.map(svc=>(
+              <div key={svc.id} className={`sr${selS?.id===svc.id?' sl':''}`} onClick={()=>setSelS(selS?.id===svc.id?null:svc)} style={{padding:'11px 14px',borderBottom:'1px solid #2C2C2C',borderLeft:'2px solid transparent',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <div>
+                  <div style={{fontSize:13,fontWeight:600,fontFamily:'Montserrat',color:'#F0EAD6',marginBottom:2}}>{svc.name}</div>
+                  <div style={{fontSize:10.5,color:'#666',marginBottom:3,fontFamily:'Montserrat'}}>{svc.desc}</div>
+                  <span style={{fontSize:10,color:'#666',background:'#1E1E1E',padding:'2px 6px',borderRadius:9,fontFamily:'Montserrat'}}>⏱ {svc.time}</span>
+                </div>
+                <div style={{textAlign:'right',marginLeft:8}}><div style={{fontSize:14,fontWeight:700,color:'#C9A84C',fontFamily:'Montserrat'}}>₹{adjPrice(svc.price)}</div></div>
+              </div>
+            ))}
+          </div>
+          <div style={{padding:'13px 15px',borderTop:'1px solid #2C2C2C'}}>
+            {selS&&<div style={{background:'rgba(201,168,76,.08)',border:'1px solid rgba(201,168,76,.3)',borderRadius:7,padding:'10px 12px',marginBottom:9}}>
+              <div style={{color:'#C9A84C',fontWeight:600,fontSize:12,fontFamily:'Montserrat',marginBottom:2}}>{selS.name}</div>
+              <div style={{display:'flex',justifyContent:'space-between',color:'#666',fontSize:11,fontFamily:'Montserrat'}}><span>⏱ {selS.time}</span><span style={{color:'#C9A84C',fontWeight:700}}>₹{adjPrice(selS.price)}</span></div>
+            </div>}
+            <button className="bg" disabled={!selS} onClick={()=>selS&&onBook({...selS,price:adjPrice(selS.price)})} style={{width:'100%',padding:'11px',borderRadius:7,fontSize:13,opacity:selS?1:.5,cursor:selS?'pointer':'not-allowed'}}>
+              {selS?'Book Appointment →':'Select a Service'}
+            </button>
+            {mode==='home'&&shop.hs&&<button className="bo" disabled={!selS} onClick={()=>selS&&onBook({...selS,name:selS.name+' (Home)',price:adjPrice(selS.price)+150})} style={{width:'100%',padding:'9px',borderRadius:7,fontSize:12,marginTop:7,opacity:selS?1:.5}}>🏠 Home Visit (+₹150)</button>}
+          </div>
+        </div>
+      </div>
+      {imgV&&<div className="mbg" onClick={()=>setImgV(null)}><div onClick={e=>e.stopPropagation()} style={{maxWidth:500,width:'100%',borderRadius:11,overflow:'hidden',border:'1px solid #C9A84C'}}><img src={imgV} alt="" style={{width:'100%',height:440,objectFit:'cover'}} onError={e=>{e.target.src='https://picsum.photos/seed/42/500/440';}} /></div></div>}
+    </div>
+  );
+}
+
+function BookModal({shop,svc,onDone,onClose}){
+  const today=new Date().toISOString().split('T')[0];
+  const [date,setDate]=useState(today);
+  const [time,setTime]=useState('');
+  const [repeat,setRepeat]=useState('none');
+  const [notes,setNotes]=useState('');
+  const iS={background:'#1E1E1E',border:'1px solid #2C2C2C',color:'#F0EAD6',borderRadius:7,padding:'9px 11px',fontSize:13,width:'100%',outline:'none',fontFamily:'Montserrat'};
+  return(
+    <div className="mbg" onClick={onClose}>
+      <div onClick={e=>e.stopPropagation()} className="fu" style={{background:'#111',border:'1px solid #2C2C2C',borderRadius:13,width:'100%',maxWidth:450,overflow:'hidden',boxShadow:'0 20px 60px rgba(0,0,0,.85)',maxHeight:'90vh',overflowY:'auto'}}>
+        <div style={{background:'#171717',padding:'17px 20px',borderBottom:'1px solid #2C2C2C',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+          <div><div style={{fontFamily:'Cormorant Garamond,serif',fontSize:20,color:'#C9A84C',fontWeight:600}}>Book Appointment</div><div style={{fontSize:12,color:'#666',marginTop:2,fontFamily:'Montserrat'}}>{shop.n} · {shop.area}</div></div>
+          <button onClick={onClose} style={{background:'none',border:'none',color:'#666',fontSize:22,cursor:'pointer',lineHeight:1}}>×</button>
+        </div>
+        <div style={{padding:20,display:'flex',flexDirection:'column',gap:13}}>
+          <div style={{background:'rgba(201,168,76,.08)',border:'1px solid rgba(201,168,76,.25)',borderRadius:9,padding:'11px 13px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <div><div style={{fontSize:13,fontWeight:600,color:'#C9A84C',fontFamily:'Montserrat'}}>{svc?.name}</div><div style={{fontSize:11,color:'#666',marginTop:2,fontFamily:'Montserrat'}}>⏱ {svc?.time}</div></div>
+            <div style={{fontSize:19,fontWeight:700,color:'#C9A84C',fontFamily:'Montserrat'}}>₹{svc?.price}</div>
+          </div>
+          <div><label style={{fontSize:10,color:'#666',fontWeight:600,letterSpacing:.1,display:'block',marginBottom:5,fontFamily:'Montserrat'}}>SELECT DATE</label><input type="date" value={date} min={today} onChange={e=>setDate(e.target.value)} style={iS}/></div>
+          <div>
+            <label style={{fontSize:10,color:'#666',fontWeight:600,letterSpacing:.1,display:'block',marginBottom:7,fontFamily:'Montserrat'}}>SELECT TIME</label>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5}}>
+              {TIMES.map(t=><button key={t} onClick={()=>setTime(t)} style={{padding:'7px 2px',borderRadius:6,border:`1px solid ${time===t?'#C9A84C':'#2C2C2C'}`,background:time===t?'rgba(201,168,76,.15)':'#1E1E1E',color:time===t?'#C9A84C':'#666',fontSize:10.5,cursor:'pointer',fontFamily:'Montserrat',transition:'all .2s'}}>{t}</button>)}
+            </div>
+          </div>
+          <div><label style={{fontSize:10,color:'#666',fontWeight:600,letterSpacing:.1,display:'block',marginBottom:5,fontFamily:'Montserrat'}}>REPEAT BOOKING</label><select value={repeat} onChange={e=>setRepeat(e.target.value)} style={iS}><option value="none">No repeat</option><option value="weekly">Every week</option><option value="biweekly">Every 2 weeks</option><option value="monthly">Every month</option></select></div>
+          <div><label style={{fontSize:10,color:'#666',fontWeight:600,letterSpacing:.1,display:'block',marginBottom:5,fontFamily:'Montserrat'}}>NOTES (Optional)</label><input value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Any special request…" style={iS}/></div>
+        </div>
+        <div style={{padding:'0 20px 20px',display:'flex',gap:9}}>
+          <button onClick={onClose} className="bgh" style={{flex:1,padding:'11px',borderRadius:7,fontSize:13}}>Cancel</button>
+          <button onClick={()=>{if(date&&time)onDone({date,time,repeat,notes})}} className="bg" style={{flex:2,padding:'11px',borderRadius:7,fontSize:13,opacity:date&&time?1:.5,cursor:date&&time?'pointer':'not-allowed'}}>{date&&time?'Confirm →':'Select date & time'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BookingsView({bookings,onCancel}){
+  return(
+    <div style={{height:'100%',overflowY:'auto',padding:22,maxWidth:660,margin:'0 auto'}}>
+      <div style={{fontFamily:'Cormorant Garamond,serif',fontSize:25,color:'#C9A84C',marginBottom:5}}>My Bookings</div>
+      <p style={{fontSize:13,color:'#666',marginBottom:18,fontFamily:'Montserrat'}}>Your upcoming and past appointments.</p>
+      {bookings.length===0?(
+        <div style={{textAlign:'center',padding:'60px 20px',color:'#555'}}>
+          <div style={{fontSize:44,marginBottom:14}}>✂</div>
+          <div style={{fontFamily:'Cormorant Garamond,serif',fontSize:21,marginBottom:7,color:'#888'}}>No bookings yet</div>
+          <p style={{fontSize:13,fontFamily:'Montserrat'}}>Explore the map to find your barber.</p>
+        </div>
+      ):bookings.map((b,i)=>(
+        <div key={b.id} className="fu" style={{background:'#171717',border:'1px solid #2C2C2C',borderRadius:11,padding:16,marginBottom:11,animationDelay:`${i*.05}s`}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:11}}>
+            <div style={{display:'flex',gap:11,alignItems:'center'}}><Av init={b.shop.n} size={38}/><div><div style={{fontSize:14,fontWeight:600,fontFamily:'Montserrat',color:'#F0EAD6'}}>{b.shop.n}</div><div style={{fontSize:12,color:'#666',fontFamily:'Montserrat'}}>{b.shop.area}</div></div></div>
+            <Bdg c={b.status==='cancelled'?'#E74C3C':'#2ECC71'} ch={b.status==='cancelled'?'Cancelled':'Confirmed'}/>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7,background:'#1E1E1E',borderRadius:7,padding:'11px 13px',marginBottom:11}}>
+            {[['Service',b.svc?.name],['Price',`₹${b.svc?.price}`],['Date',b.date],['Time',b.time],['Repeat',b.repeat==='none'?'One-time':b.repeat],['Type',b.mode==='home'?'Home Visit':'Salon']].map(([k,v])=>(
+              <div key={k}><div style={{fontSize:10,color:'#555',letterSpacing:.08,fontWeight:600,fontFamily:'Montserrat'}}>{k.toUpperCase()}</div><div style={{fontSize:13,marginTop:1,color:k==='Price'?'#C9A84C':'#F0EAD6',fontWeight:k==='Price'?700:400,fontFamily:'Montserrat'}}>{v}</div></div>
+            ))}
+          </div>
+          <div style={{display:'flex',gap:7}}>
+            <button className="bgh" onClick={()=>onCancel(b.id)} style={{borderRadius:5,padding:'7px 13px',fontSize:11}}>Cancel</button>
+            <button className="bo" style={{borderRadius:5,padding:'7px 13px',fontSize:11}}>Reschedule</button>
+            {b.repeat!=='none'&&<Bdg c='#C9A84C' ch={`🔁 ${b.repeat}`}/>}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function App(){
+  const [cityScreen,setCityScreen]=useState(true);
+  const [city,setCity]=useState('mumbai');
+  const [view,setView]=useState('map');
+  const [mode,setMode]=useState('salon');
+  const [search,setSearch]=useState('');
+  const [shop,setShop]=useState(null);
+  const [shopIdx,setShopIdx]=useState(0);
+  const [svc,setSvc]=useState(null);
+  const [bookM,setBookM]=useState(false);
+  const [bookings,setBookings]=useState([]);
+  const [notif,setNotif]=useState(null);
+
+  const shops=useMemo(()=>CITIES[city].shops.filter(s=>{
+    const q=search.toLowerCase();
+    return !q||(s.n.toLowerCase().includes(q)||s.area.toLowerCase().includes(q));
+  }).filter(s=>mode==='home'?s.hs:true),[city,search,mode]);
+
+  const notify=(msg,type='ok')=>{setNotif({msg,type});setTimeout(()=>setNotif(null),3000);};
+
+  const goShop=(s)=>{
+    const idx=CITIES[city].shops.findIndex(x=>x.n===s.n);
+    setShop(s);setShopIdx(idx>=0?idx:0);setView('shop');
+  };
+
+  const confirmBook=(data)=>{
+    setBookings(p=>[{id:Date.now(),shop,svc,mode,status:'confirmed',...data},...p]);
+    setBookM(false);notify(`Booked at ${shop.n}!`);
+  };
+
+  const selectCity=(k)=>{setCity(k);setCityScreen(false);setView('map');setSearch('');setShop(null);};
+  const confirmed=bookings.filter(b=>b.status==='confirmed').length;
+
+  if(cityScreen) return <><G/><CitySelect onSelect={selectCity} current={city}/></>;
+
+  return(
+    <div style={{height:'100vh',display:'flex',flexDirection:'column',background:'#080808',fontFamily:'Montserrat,sans-serif',overflow:'hidden'}}>
+      <G/>
+      {notif&&<Notif msg={notif.msg} type={notif.type} onClose={()=>setNotif(null)}/>}
+      <Nav search={search} setSearch={setSearch} mode={mode} setMode={m=>{setMode(m);if(view==='shop')setView('map');}} bookN={confirmed} onLogo={()=>{setView('map');setShop(null);}} city={city} onCity={()=>setCityScreen(true)}/>
+      {view!=='shop'&&<Tabs view={view} setView={v=>{setView(v);setShop(null);}} bookN={confirmed}/>}
+      <div style={{flex:1,overflow:'hidden'}}>
+        {view==='map'&&<HomeView city={city} shops={shops} onSelect={goShop} mode={mode}/>}
+        {view==='browse'&&<BrowseView shops={shops} onSelect={goShop}/>}
+        {view==='shop'&&shop&&<ShopView shop={shop} onBack={()=>setView('map')} onBook={s=>{setSvc(s);setBookM(true);}} mode={mode} idx={shopIdx}/>}
+        {view==='bookings'&&<BookingsView bookings={bookings} onCancel={id=>setBookings(p=>p.map(b=>b.id===id?{...b,status:'cancelled'}:b))}/>}
+      </div>
+      {bookM&&<BookModal shop={shop} svc={svc} onDone={confirmBook} onClose={()=>setBookM(false)}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
 </body>
 </html>
